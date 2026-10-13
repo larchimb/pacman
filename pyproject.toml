@@ -1,0 +1,18 @@
+[project]
+name = "pac_man"
+version = "0.1.0"
+description = "Pac-man game remasterised"
+requires-python = ">=3.10"
+dependencies = [
+    "mazegenerator",
+    "pygame",
+    ]
+
+[tool.uv.sources]
+ mazegenerator = { path = "mazegenerator-2.1.0-py3-none-any.whl" }
+ 
+[dependency-groups]
+dev = [
+    "flake8>=7.4.1",
+    "mypy>=2.3.1",
+]

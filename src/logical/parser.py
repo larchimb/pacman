@@ -15,7 +15,7 @@ class Parser():
     def __init__(self) -> None:
         '''Initialazing variables to return'''
         self.raw_data: str = ""
-        self.data = 
+        self.data =
 
     def check_file(self, path: str) -> None:
         '''To check if the file exist and is authorized'''

@@ -9,7 +9,8 @@ def main() -> None:
     av = sys.argv
     if not len(av) == 2:
         raise Exception("[ERROR]: You must have 1 argument for this programm")
-    parser = Parser(av[1])
+    parser = Parser()
+    parser.check_file(av[1])
 
 if __name__ == "__main__":
     try:

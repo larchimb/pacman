@@ -1,5 +1,5 @@
 import mazegenerator
-from src.logical.parser import ParsingError
+from src.logical.models import ParsingError
 from src.logical.parser import Parser
 import sys
 

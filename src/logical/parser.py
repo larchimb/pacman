@@ -1,13 +1,6 @@
 import json
-
-
-class ParsingError(Exception):
-    "Contain all errors due to the parsing"
-    def __init__(self, message: str) -> None:
-        super().__init__(message)
-
-    def __str__(self) -> str:
-        return f"[PARSING ERROR]: {super().__str__()}"
+from .models import ParsingError
+from typing import Any
 
 
 class Parser():
@@ -15,7 +8,7 @@ class Parser():
     def __init__(self) -> None:
         '''Initialazing variables to return'''
         self.raw_data: str = ""
-        self.data = 
+        self.data: dict[str, Any] = {}
 
     def check_file(self, path: str) -> None:
         '''To check if the file exist and is authorized'''
@@ -23,9 +16,9 @@ class Parser():
             with open(path) as f:
                 text = f.read()
         except FileNotFoundError as e:
-            raise e
+            raise Exception(f"[ERROR]: {e}")
         except OSError as e:
-            raise Exception(f"[ERROR]: Unable to read file '{path}'")
+            raise Exception(f"[ERROR]: file '{path}' is locked")
         self.delete_comments(text)
         self.check_json_format()
         print(self.raw_data)
@@ -42,5 +35,29 @@ class Parser():
 
     def check_json_format(self) -> None:
         '''To check if it is the right format'''
+        try:
+            self.data: dict[str, Any] = json.loads(self.raw_data)
+        except json.JSONDecodeError as e:
+            raise ParsingError(f"{e}")
 
 
+class Config():
+    '''A class with all the parameters and the default value'''
+    def __init__(self, data: dict[str, Any]) -> None:
+        self.data = data
+        self.highscores: dict[str, int] = {}
+        self.get_highscores()
+
+
+    def get_highscores(self) -> None:
+        '''Obtain the highscores from the file'''
+        path_to_highscores = self.data.get("highscore_filename")
+        if not path_to_highscores:
+            path_to_highscores = "highscores.json"
+        try:
+            with open(path_to_highscores) as f:
+                self.highscores = json.load(f)
+        except FileNotFoundError as e:
+            raise Exception(f"[ERROR]: {e}")
+        except OSError as e:
+            raise Exception(f"[ERROR]: file '{path_to_highscores}' is locked")

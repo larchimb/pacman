@@ -59,39 +59,19 @@ class RendererError(Exception):
 
 @dataclass(frozen=True)
 class InputEvent:
-    """A window event, independent from pygame.
-
-    Attributes:
-        kind: One of QUIT, KEY_DOWN or KEY_UP.
-        key: Name of the key ("up", "a", "5", "escape"...), empty for
-            QUIT and for keys the game does not use.
-    """
+    """A window event, independent from pygame."""
 
     kind: str
     key: str = ""
 
 
 def to_rgb(color: int) -> tuple[int, int, int]:
-    """Convert an MLX-style 0xRRGGBB color to an (r, g, b) tuple.
-
-    Args:
-        color: Color as an integer, e.g. 0xFFFF00 for yellow.
-
-    Returns:
-        The (red, green, blue) components, each between 0 and 255.
-    """
+    """Convert an MLX-style 0xRRGGBB color to an (r, g, b) tuple."""
     return ((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF)
 
 
 def _key_name(code: int) -> str:
-    """Translate a pygame key code to the name used by the game.
-
-    Args:
-        code: The pygame key code (event.key).
-
-    Returns:
-        The key name, or an empty string if the key is not used.
-    """
+    """Translate a pygame key code to the name used by the game."""
     if code in _SPECIAL_KEYS:
         return _SPECIAL_KEYS[code]
     if pygame.K_a <= code <= pygame.K_z or pygame.K_0 <= code <= pygame.K_9:

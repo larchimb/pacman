@@ -1,63 +1,54 @@
 import json
-from .models import ParsingError
 from typing import Any
+
+class ParsingError(Exception):
+    '''Contain all errors due to the parsing'''
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+
+    def __str__(self) -> str:
+        return f"[PARSING ERROR]: {super().__str__()}"
 
 
 class Parser():
-    '''Check all datas in entry'''
-    def __init__(self) -> None:
-        '''Initialazing variables to return'''
-        self.raw_data: str = ""
-        self.data: dict[str, Any] = {}
-
-    def check_file(self, path: str) -> None:
-        '''To check if the file exist and is authorized'''
+    '''Check the json format without the comments'''
+    @staticmethod
+    def check_file(path: str) -> dict[str, Any]:
+        '''Read the file, remove comments and check the JSON format'''
         try:
-            with open(path) as f:
+            with open(path, encoding="utf-8") as f:
                 text = f.read()
         except FileNotFoundError as e:
-            raise Exception(f"[ERROR]: {e}")
+            raise ParsingError(f"file '{path}' not found") from e
+        except PermissionError as e:
+            raise ParsingError(f"no permission to read '{path}'") from e
+        except UnicodeDecodeError as e:
+            raise ParsingError(f"file '{path}' is not valid UTF-8") from e
         except OSError as e:
-            raise Exception(f"[ERROR]: file '{path}' is locked")
-        self.delete_comments(text)
-        self.check_json_format()
-        print(self.raw_data)
+            raise ParsingError(f"cannot read '{path}': {e}") from e
+        raw_data = Parser.delete_comments(text)
+        return Parser.check_json_format(raw_data)
 
-    def delete_comments(self, raw_text: str) -> None:
+    @staticmethod
+    def delete_comments(raw_text: str) -> str:
         '''Delete all comments in the file'''
         all_rows = raw_text.splitlines()
+        raw_data = ""
         for row in all_rows:
             for letter in row:
                 if letter == "#":
                     row = row[:row.index(letter)]
                     break
-            self.raw_data += row + "\n"
+            raw_data += row + "\n"
+        return raw_data
 
-    def check_json_format(self) -> None:
-        '''To check if it is the right format'''
+    @staticmethod
+    def check_json_format(raw_data: str) -> dict[str, Any]:
+        '''To check if it is a valid JSON with a dict'''
         try:
-            self.data: dict[str, Any] = json.loads(self.raw_data)
+            data = json.loads(raw_data)
         except json.JSONDecodeError as e:
-            raise ParsingError(f"{e}")
-
-
-class Config():
-    '''A class with all the parameters and the default value'''
-    def __init__(self, data: dict[str, Any]) -> None:
-        self.data = data
-        self.highscores: dict[str, int] = {}
-        self.get_highscores()
-
-
-    def get_highscores(self) -> None:
-        '''Obtain the highscores from the file'''
-        path_to_highscores = self.data.get("highscore_filename")
-        if not path_to_highscores:
-            path_to_highscores = "highscores.json"
-        try:
-            with open(path_to_highscores) as f:
-                self.highscores = json.load(f)
-        except FileNotFoundError as e:
-            raise Exception(f"[ERROR]: {e}")
-        except OSError as e:
-            raise Exception(f"[ERROR]: file '{path_to_highscores}' is locked")
+            raise ParsingError(f"invalid JSON: {e}") from e
+        if not isinstance(data, dict):
+            raise ParsingError("format must be a dict object")
+        return data

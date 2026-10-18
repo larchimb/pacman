@@ -1,0 +1,26 @@
+- A la fin du timer Game Over
+- Temps par nivau : 90s
+- 10 niveaux a réaliser
+- taille de fenetre fixe pour tous les niveaux, valeur par defaut :
+        + niveau 1 = 10x10
+        + niveau 2 = 11x11
+        ...
+        + niveau 10 = 20x20
+- Apparition des fantomes et des suerpacgums dans les 4 coins du maze
+- comportements des fantomes :
+        + Temps avant respawn des fantomes : 5s
+        + rouge = traque
+        + rose = piege
+        + bleu = aleatoire
+        + orange = timide
+
+- cheatmode :
+        + Appuyer sur la lettre "c"
+        + Invincibilté "1"
+        + Ghost freeze "2"
+        + extra lives "3"
+        + speed ++ "4"
+        + Next level "5"
+
+
+

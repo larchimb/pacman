@@ -102,7 +102,7 @@ Mes fichiers prévus :
 src/graphical/
 ├── __init__.py
 ├── renderer.py         Renderer : seul fichier qui importe pygame (FAIT)
-├── app.py              App : boucle principale à cadence fixe + écran courant
+├── app.py              App : boucle principale à cadence fixe + écran courant (FAIT, sans écrans)
 ├── screens/
 │   ├── screen.py       Screen : classe mère (handle_event, update, draw)
 │   ├── menu.py         MenuScreen
@@ -128,13 +128,31 @@ pacman.spec             PyInstaller (à la racine)
 - Méthodes : `get_screen_size()` (static), `new_image`, `new_filled_image`,
   `image_pixel_put`, `load_image` (avec cache), `clear`, `pixel_put`,
   `put_image`, `string_put`, `present`, `poll_events`, `close`.
+- À prévoir (étape 5) : un alias `Image = pygame.Surface` exporté par le
+  renderer, pour typer les images ailleurs sans importer pygame.
+
+## Mon `app.py` (carte 2, fait le 19 oct.)
+
+- Constantes `FPS = 60`, `FRAME_TIME = 1 / FPS`, `DIRECTION_KEYS` (flèches + WASD
+  → `"up"`/`"down"`/`"left"`/`"right"`).
+- `App(width, height, title)` crée le `Renderer` ; `self._running` (drapeau d'arrêt),
+  `self._direction` (dernière direction, affichée à l'écran pour le test).
+- `run()` : boucle `start = time.monotonic()` → `_handle_events()` → `_draw()` →
+  `time.sleep(FRAME_TIME - elapsed)` si la frame a été plus courte ;
+  `try / finally` pour toujours appeler `renderer.close()`.
+- `_handle_events()` : QUIT ou Échap → arrêt ; direction changée sur KEY_DOWN
+  uniquement (KEY_UP servira à suivre les touches maintenues).
+- Imports absolus depuis la racine : `from src.graphical.renderer import ...`.
+- Test : `spike_app.py` à la racine (`App(640, 480, "Pac-Man").run()`).
+- Notions vues : `sys.path` et imports, cadence fixe (frame de 20 ms → ~50 FPS),
+  double buffering (`present`), coût de `new_filled_image` (créer une fois).
 
 ## Plan, étape par étape (lié aux cartes Trello jaunes)
 
 | # | Carte Trello | Contenu | État |
 |---|---|---|---|
-| 1 | Choisir et tester la bibliothèque | `Renderer` + `spike_renderer.py` (images, texte, clavier) | renderer écrit, test en cours |
-| 2 | Fenêtre graphique minimale | `App.run()` : boucle à cadence fixe (60 FPS via `time`), flèches + WASD, Échap / croix sans traceback | à faire |
+| 1 | Choisir et tester la bibliothèque | `Renderer` + `spike_renderer.py` (images, texte, clavier) | fait (packageable : vérifié à l'étape 2b) |
+| 2 | Fenêtre graphique minimale | `App.run()` : boucle à cadence fixe (60 FPS via `time`), flèches + WASD, Échap / croix sans traceback | **fait** (19 oct.) |
 | 2b | Premier build de test | PyInstaller sur le mini-programme, tôt | à faire |
 | 3 | Machine à états des écrans | `Screen` + `App.change_screen()`, écrans vides | à faire |
 | 4 | Menu principal | Start, Highscores, Instructions, Exit | à faire |
@@ -148,6 +166,18 @@ pacman.spec             PyInstaller (à la racine)
 Dates Trello (2026) : rendu final le 7 nov. Sprites 16 oct, machine à états 17 oct,
 menu 20 oct, HUD 21 oct, pause 22 oct, fin + saisie 24 oct, premier build 24 oct,
 highscores 27-28 oct, packaging 31 oct.
+
+Prochaine étape : **3 — machine à états** (avant les sprites, pour que le plateau
+soit dessiné dans `GameScreen` et pas dans `App._draw()`).
+
+## Ce que Luc a mis sur `main` (vu le 19 oct., pas encore mergé dans `graphic`)
+
+- `src/__init__.py`, `src/logical/parser.py` (`Parser.check_file`, enlève les `#`,
+  `ParsingError`), `src/logical/mazeloader.py` (`MazeLoader` : valeurs par défaut,
+  vérifications, **gère aussi `.highscores.json`** → à coordonner avec l'étape 8).
+- `config.json` est maintenant un dict ; `levels` = liste `[[10, 10], …, [19, 19]]`.
+- Le `.whl` du générateur est dans le dépôt ; `pac-man.py` appelle `MazeLoader`.
+- Fusion simulée (`git merge-tree`) : aucun conflit. Je merge quand je le décide.
 
 ## Décisions de jeu (text.txt, prises avec Luc)
 
@@ -164,7 +194,10 @@ highscores 27-28 oct, packaging 31 oct.
 source .venv/bin/activate          # activer le venv
 pip install pygame flake8 mypy     # (une fois)
 python spike_renderer.py           # test du renderer
+python spike_app.py                # test de la boucle App
 flake8 src && mypy src --strict    # vérifier avant chaque commit
+                                   # (src/__init__.py doit exister, sinon mypy
+                                   #  voit renderer.py "sous deux noms")
 deactivate
 ```
 Plus tard (quand la PR de Luc est dans main) : `make install`, `make run`, `make lint` (uv).

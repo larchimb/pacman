@@ -83,19 +83,8 @@ class Renderer:
     """Window and drawing primitives, limited to what MLX can do."""
 
     def __init__(self, width: int, height: int, title: str) -> None:
-        """Open the game window (mlx_init + mlx_new_window).
-
-        Args:
-            width: Window width in pixels.
-            height: Window height in pixels.
-            title: Text shown in the window title bar.
-
-        Raises:
-            RendererError: If the window cannot be created.
-        """
+        """Open the game window (mlx_init + mlx_new_window)."""
         try:
-            # Only display and text: pygame.init() would also start the
-            # sound system, which MLX does not have.
             pygame.display.init()
             pygame.font.init()
             self._window = pygame.display.set_mode((width, height))
@@ -110,46 +99,19 @@ class Renderer:
 
     @staticmethod
     def get_screen_size() -> tuple[int, int]:
-        """Return the size of the monitor (mlx_get_screen_size).
-
-        Can be called before creating the window.
-
-        Returns:
-            The (width, height) of the screen in pixels.
-        """
+        """Return the size of the monitor (mlx_get_screen_size)."""
         pygame.display.init()
         info = pygame.display.Info()
         return (info.current_w, info.current_h)
 
     def new_image(self, width: int, height: int) -> pygame.Surface:
-        """Create a black image in memory (mlx_new_image).
-
-        Args:
-            width: Image width in pixels.
-            height: Image height in pixels.
-
-        Returns:
-            The new image.
-        """
+        """Create a black image in memory (mlx_new_image)."""
         return pygame.Surface((width, height))
 
     def new_filled_image(
         self, width: int, height: int, color: int
     ) -> pygame.Surface:
-        """Create an image of a single color.
-
-        Built pixel by pixel like an MLX image buffer, so we do not
-        depend on pygame.draw (which has no MLX equivalent). Create
-        these images once at startup, not at every frame.
-
-        Args:
-            width: Image width in pixels.
-            height: Image height in pixels.
-            color: Fill color as 0xRRGGBB.
-
-        Returns:
-            The new image.
-        """
+        """Create an image of a single color."""
         image = self.new_image(width, height)
         rgb = to_rgb(color)
         for y in range(height):
@@ -160,33 +122,12 @@ class Renderer:
     def image_pixel_put(
         self, image: pygame.Surface, x: int, y: int, color: int
     ) -> None:
-        """Write one pixel in an image (mlx_get_data_addr buffer).
-
-        Pixels outside the image are ignored.
-
-        Args:
-            image: The image to modify.
-            x: Column of the pixel.
-            y: Row of the pixel.
-            color: Pixel color as 0xRRGGBB.
-        """
+        """Write one pixel in an image (mlx_get_data_addr buffer)."""
         if 0 <= x < image.get_width() and 0 <= y < image.get_height():
             image.set_at((x, y), to_rgb(color))
 
     def load_image(self, path: str) -> pygame.Surface:
-        """Load a PNG file as an image (mlx_png_file_to_image).
-
-        Images are cached: loading the same file twice reads it once.
-
-        Args:
-            path: Path to the PNG file.
-
-        Returns:
-            The loaded image.
-
-        Raises:
-            RendererError: If the file is missing or not a valid image.
-        """
+        """Load a PNG file as an image (mlx_png_file_to_image)."""
         if path not in self._images:
             try:
                 self._images[path] = pygame.image.load(path)
@@ -201,34 +142,15 @@ class Renderer:
         self._window.fill((0, 0, 0))
 
     def pixel_put(self, x: int, y: int, color: int) -> None:
-        """Draw one pixel in the window (mlx_pixel_put).
-
-        Args:
-            x: Column of the pixel.
-            y: Row of the pixel.
-            color: Pixel color as 0xRRGGBB.
-        """
+        """Draw one pixel in the window (mlx_pixel_put)."""
         self._window.set_at((x, y), to_rgb(color))
 
     def put_image(self, image: pygame.Surface, x: int, y: int) -> None:
-        """Draw an image in the window (mlx_put_image_to_window).
-
-        Args:
-            image: The image to draw.
-            x: Column of the image top-left corner.
-            y: Row of the image top-left corner.
-        """
+        """Draw an image in the window (mlx_put_image_to_window)."""
         self._window.blit(image, (x, y))
 
     def string_put(self, x: int, y: int, color: int, text: str) -> None:
-        """Write text in the window (mlx_string_put).
-
-        Args:
-            x: Column of the text top-left corner.
-            y: Row of the text top-left corner.
-            color: Text color as 0xRRGGBB.
-            text: The text to write.
-        """
+        """Write text in the window (mlx_string_put)."""
         surface = self._font.render(text, True, to_rgb(color))
         self._window.blit(surface, (x, y))
 
@@ -237,14 +159,7 @@ class Renderer:
         pygame.display.flip()
 
     def poll_events(self) -> list[InputEvent]:
-        """Return the window events received since the last call.
-
-        Equivalent of the mlx_hook callbacks for KeyPress (2),
-        KeyRelease (3) and DestroyNotify (17).
-
-        Returns:
-            The events, in the order they happened.
-        """
+        """Return the window events received since the last call."""
         events: list[InputEvent] = []
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

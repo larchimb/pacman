@@ -1,6 +1,5 @@
 from typing import Any
 from .parser import Parser, ParsingError
-from pydantic import BaseModel
 
 
 class MazeLoader():
@@ -8,27 +7,27 @@ class MazeLoader():
     def __init__(self,
                  data: dict[str, Any]) -> None:
         self.raw_data = data
-        self.datas = {
-        "highscore": ".highscores.json",
-        "levels": [
-        [14, 10],
-        [15, 11],
-        [16, 12],
-        [17, 13],
-        [18, 14],
-        [19, 15],
-        [20, 16],
-        [21, 17],
-        [22, 18],
-        [23, 19]
-        ],
-        "lives": 3,
-        "pacgum": 50,
-        "points_per_pacgum": 10,
-        "points_per_superpacgum": 50,
-        "points_per_ghost": 200,
-        "seed": 42,
-        "level_max_time": 90
+        self.datas: dict[str, Any] = {
+         "highscore": ".highscores.json",
+         "levels": [
+            [14, 10],
+            [15, 11],
+            [16, 12],
+            [17, 13],
+            [18, 14],
+            [19, 15],
+            [20, 16],
+            [21, 17],
+            [22, 18],
+            [23, 19]
+         ],
+         "lives": 3,
+         "pacgum": 50,
+         "points_per_pacgum": 10,
+         "points_per_superpacgum": 50,
+         "points_per_ghost": 200,
+         "seed": 42,
+         "level_max_time": 90
         }
         self.width_min = 13
         self.width_max = 24
@@ -62,7 +61,7 @@ class MazeLoader():
         for key, value in datas.items():
             if len(key) > 10:
                 raise ParsingError(f"{key} is too long, max 10 characters")
-            if(not isinstance(value, int)
+            if (not isinstance(value, int)
                or isinstance(value, bool)
                or value < 0):
                 raise ParsingError("the score must be a positiv int")
@@ -80,7 +79,7 @@ class MazeLoader():
     def get_levels(self) -> list[list[int]]:
         '''To set up the levels'''
         levels = self.raw_data.get("levels")
-        default_levels = self.datas["levels"]
+        default_levels: list[list[int]] = self.datas["levels"]
         if not levels:
             print(
                 "[VALUE ERROR]: no valid levels, the default ones are applied"

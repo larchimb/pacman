@@ -1,6 +1,7 @@
 import json
 from typing import Any
 
+
 class ParsingError(Exception):
     '''Contain all errors due to the parsing'''
     def __init__(self, message: str) -> None:

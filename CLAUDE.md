@@ -102,12 +102,13 @@ Mes fichiers prévus :
 src/graphical/
 ├── __init__.py
 ├── renderer.py         Renderer : seul fichier qui importe pygame (FAIT)
-├── app.py              App : boucle principale à cadence fixe + écran courant (FAIT, sans écrans)
+├── app.py              App : boucle + écran courant + méthodes de transition (FAIT)
 ├── screens/
-│   ├── screen.py       Screen : classe mère (handle_event, update, draw)
-│   ├── menu.py         MenuScreen
-│   ├── game.py         GameScreen (plateau + HUD)
-│   ├── pause.py        PauseScreen
+│   ├── __init__.py
+│   ├── screen.py       Screen : classe mère (handle_event, update, draw) (FAIT)
+│   ├── menu.py         MenuScreen (FAIT, version test : Entrée / Échap)
+│   ├── game.py         GameScreen (plateau + HUD) (FAIT, version test : direction)
+│   ├── pause.py        PauseScreen (FAIT, version test : reprendre / M = menu)
 │   ├── end.py          EndScreen (game over / victoire + saisie du nom)
 │   ├── highscores.py   HighscoresScreen
 │   └── instructions.py InstructionsScreen
@@ -131,21 +132,54 @@ pacman.spec             PyInstaller (à la racine)
 - À prévoir (étape 5) : un alias `Image = pygame.Surface` exporté par le
   renderer, pour typer les images ailleurs sans importer pygame.
 
-## Mon `app.py` (carte 2, fait le 19 oct.)
+## Mon `app.py` (carte 2 le 19 oct., machine à états le 21 oct.)
 
-- Constantes `FPS = 60`, `FRAME_TIME = 1 / FPS`, `DIRECTION_KEYS` (flèches + WASD
-  → `"up"`/`"down"`/`"left"`/`"right"`).
+- Constantes `FPS = 60`, `FRAME_TIME = 1 / FPS`.
 - `App(width, height, title)` crée le `Renderer` ; `self._running` (drapeau d'arrêt),
-  `self._direction` (dernière direction, affichée à l'écran pour le test).
-- `run()` : boucle `start = time.monotonic()` → `_handle_events()` → `_draw()` →
-  `time.sleep(FRAME_TIME - elapsed)` si la frame a été plus courte ;
+  `self._screen: Screen = MenuScreen(self)` (écran de départ, créé dans `__init__`).
+- `run()` : `start = time.monotonic()`, `dt = start - last` → `_handle_events()` →
+  `self._screen.update(dt)` → `_draw()` → `time.sleep(FRAME_TIME - elapsed)` ;
   `try / finally` pour toujours appeler `renderer.close()`.
-- `_handle_events()` : QUIT ou Échap → arrêt ; direction changée sur KEY_DOWN
-  uniquement (KEY_UP servira à suivre les touches maintenues).
-- Imports absolus depuis la racine : `from src.graphical.renderer import ...`.
+  `dt` = temps réel depuis la frame précédente (≈ 0,0167 s) ; `elapsed` = travail
+  de la frame seule (sert au sleep).
+- `_handle_events()` : QUIT (croix) → `quit()` (règle globale) ; tout le reste →
+  `self._screen.handle_event(event)` (Échap change de sens selon l'écran).
+- `_draw()` : `clear()` → `self._screen.draw(renderer)` → `present()`.
+- Méthodes publiques appelées par les écrans : `change_screen(screen)`, `quit()`,
+  `show_menu()`, `start_game()`, `pause(game)`.
+- Imports absolus depuis la racine : `from src.graphical.screens.menu import ...`
+  (chemin du fichier, `/` → `.`, sans `.py`).
 - Test : `spike_app.py` à la racine (`App(640, 480, "Pac-Man").run()`).
-- Notions vues : `sys.path` et imports, cadence fixe (frame de 20 ms → ~50 FPS),
-  double buffering (`present`), coût de `new_filled_image` (créer une fois).
+
+## Machine à états des écrans (carte 3, en cours)
+
+- `Screen` (classe mère) : `self._app`, méthodes vides `handle_event`, `update`,
+  `draw(renderer)`. Les enfants ne redéfinissent que ce dont ils ont besoin
+  (sinon Python remonte à `Screen` : voir `MenuScreen.__mro__`).
+- Import du type `App` dans les écrans : `if TYPE_CHECKING:` + `"App"` entre
+  guillemets → évite l'import circulaire app ↔ screen.
+- **Les écrans ne s'importent jamais entre eux** : c'est `App` qui crée les écrans
+  (une méthode par transition) → pas de boucle menu → game → pause → menu, et
+  toutes les transitions sont lisibles au même endroit.
+- Enfant avec son propre `__init__` → appeler `super().__init__(app)`.
+- `PauseScreen(app, game)` garde **le même objet** `GameScreen` → reprendre =
+  `change_screen(self._game)` (partie conservée) ; `start_game()` = nouvel objet.
+- `DIRECTION_KEYS` (flèches + WASD) est maintenant dans `screens/game.py`.
+- Transitions faites (3.2a) : Menu —Entrée→ Jeu —Échap→ Pause —Échap/Entrée→ Jeu ;
+  Pause —M→ Menu ; Menu —Échap→ quitter ; croix → quitter partout.
+- Reste (3.2b) : `EndScreen` (Fin + saisie du nom), `HighscoresScreen`,
+  `InstructionsScreen` et leurs transitions (Jeu → Fin → Menu, Menu ↔ Highscores,
+  Menu ↔ Instructions), touches de test temporaires en attendant le vrai `Game`.
+
+## Notions vues (pour la soutenance)
+
+- `sys.path` et imports absolus / relatifs ; import circulaire et `TYPE_CHECKING`.
+- Cadence fixe (frame de 20 ms → ~50 FPS, le jeu « rame » mais continue), `dt`.
+- Double buffering (`present`), coût de `new_filled_image` (créer une seule fois).
+- KEY_DOWN = intention ; KEY_UP pour suivre les touches maintenues.
+- Bits des murs (N=1, E=2, S=4, W=8) et `cell & bit`.
+- Héritage, `super()`, polymorphisme, ordre de résolution (`__mro__`) ;
+  « hérite de » (MenuScreen → Screen) ≠ « utilise » (App → écran).
 
 ## Plan, étape par étape (lié aux cartes Trello jaunes)
 
@@ -154,7 +188,7 @@ pacman.spec             PyInstaller (à la racine)
 | 1 | Choisir et tester la bibliothèque | `Renderer` + `spike_renderer.py` (images, texte, clavier) | fait (packageable : vérifié à l'étape 2b) |
 | 2 | Fenêtre graphique minimale | `App.run()` : boucle à cadence fixe (60 FPS via `time`), flèches + WASD, Échap / croix sans traceback | **fait** (19 oct.) |
 | 2b | Premier build de test | PyInstaller sur le mini-programme, tôt | à faire |
-| 3 | Machine à états des écrans | `Screen` + `App.change_screen()`, écrans vides | à faire |
+| 3 | Machine à états des écrans | `Screen` + `App.change_screen()`, écrans vides | **en cours** : 3.1 routage + 3.2a Menu/Jeu/Pause faits (21 oct.), reste 3.2b |
 | 4 | Menu principal | Start, Highscores, Instructions, Exit | à faire |
 | 5 | Sprites et rendu du plateau | `assets/` + `BoardView` avec le faux `Game` | à faire |
 | 6 | HUD + Menu pause | `draw_hud()`, `PauseScreen` (en pause, seul « reprendre » marche) | à faire |
@@ -167,22 +201,61 @@ Dates Trello (2026) : rendu final le 7 nov. Sprites 16 oct, machine à états 17
 menu 20 oct, HUD 21 oct, pause 22 oct, fin + saisie 24 oct, premier build 24 oct,
 highscores 27-28 oct, packaging 31 oct.
 
-Prochaine étape : **3 — machine à états** (avant les sprites, pour que le plateau
-soit dessiné dans `GameScreen` et pas dans `App._draw()`).
+Prochaine étape : **3.2b** — `EndScreen`, `HighscoresScreen`, `InstructionsScreen`
+et leurs transitions. Ensuite carte 4 (menu) ou 5 (sprites, en retard).
 
-## Ce que Luc a mis sur `main` (vu le 19 oct., pas encore mergé dans `graphic`)
+## Ce que Luc a mis sur `main` (vu le 21 oct., dernier commit `33591a9`, pas encore mergé dans `graphic`)
 
-- `src/__init__.py`, `src/logical/parser.py` (`Parser.check_file`, enlève les `#`,
-  `ParsingError`), `src/logical/mazeloader.py` (`MazeLoader` : valeurs par défaut,
-  vérifications, **gère aussi `.highscores.json`** → à coordonner avec l'étape 8).
-- `config.json` est maintenant un dict ; `levels` = liste `[[10, 10], …, [19, 19]]`.
-- Le `.whl` du générateur est dans le dépôt ; `pac-man.py` appelle `MazeLoader`.
-- Fusion simulée (`git merge-tree`) : aucun conflit. Je merge quand je le décide.
+Fichiers (`src/logical/`) :
+- `parser.py` : `Parser.check_file(path)` lit le JSON, enlève les `#`, lève `ParsingError`.
+- `mazeloader.py` : `MazeLoader(data)` → `config.datas` (dict) avec valeurs par
+  défaut et vérifications. Charge aussi les highscores : `datas["highscore"]`
+  devient le dict `{nom: score}` (on perd le chemin du fichier).
+- `level.py` : `Level(config, MazeGenerator)` = un niveau.
+  - `_maze` (privé) : `list[list[int]]`, `maze[y][x]`, **bit à 1 = mur** :
+    N=1, E=2, S=4, W=8 ; `15` = case fermée (logo « 42 »).
+  - `pacman` : objet `PacMan`, départ au centre `((w-1)//2, (h-1)//2)`.
+  - `pacgums` / `supergums` : `set` de `(x, y)` ; super-pacgums dans les 4 coins.
+  - `ghosts` : `[Hunter (0,0), Tricky (w-1,0), Randomly (w-1,h-1), Scary (0,h-1)]`
+    (= rouge traque, rose piège, bleu aléatoire, orange timide).
+  - `eat(pos)` → `"pacgum"` / `"supergum"` / `None` ; `is_cleared()`.
+- `entities.py` : `Entity` (mère) avec `pos` (tuple de cases entières), `direction`,
+  `next_direction` (`"N"`/`"E"`/`"S"`/`"W"`), `can_move(maze, d)`,
+  `possible_directions(maze)`, `move(maze)` (avance d'**une case**).
+  Sous-classes `PacMan`, `Hunter`, `Tricky`, `Randomly`, `Scary` : IA vide (`...`).
+- `game.py` : `Game(config)` — `levels` (10 niveaux : seed config pour le 1,
+  `random` ensuite), `current_level` (int), `level` (propriété → objet `Level`),
+  `score`, `lives`, `paused`, `eat()`, `next_level()`, `game_end()` (vide),
+  `handle_action(action)` (gère `"pause"`), `update()` (vide, **sans `dt`**).
+- `pac-man.py` : config → `MazeLoader` → `Game(config)` ; `try/except` actif.
+  Ne lance encore rien de graphique.
+- `config.json` : dict ; `levels` de `[14, 10]` à `[23, 19]` (le « 42 » exige
+  ≥ 14×10) ; `level_max_time` = 80 (90 par défaut et dans text.txt).
+- `pyproject.toml` : dépendance `pydantic` (plus utilisée dans le code).
+
+Fusion simulée (`git merge-tree`) le 21 oct. : aucun conflit. Je merge quand je le décide.
+
+Points à discuter avec Luc :
+1. **Contrat** : grille publique (`maze`), directions `"N"/"E"/"S"/"W"` (mon `App`
+   utilise `"up"/"down"/...` → choisir), `update(dt)` ou cadence fixe par case,
+   `game.level` = objet `Level` chez lui (le HUD veut le numéro → `current_level + 1`),
+   où passent les touches (`handle_action`) et le cheat mode, `is_over` / `is_won`.
+2. **Déplacement case par case** : `move()` saute d'une case ; décider la vitesse
+   (combien de frames par case) et si l'affichage est fluide (interpolation) ou non.
+3. **Pause** : `game.paused` existe chez lui, `PauseScreen` est chez moi → qui décide.
+4. **Highscores** : cartes jaunes (moi) mais chargés par `MazeLoader` → il me passe
+   le chemin, je gère `HighscoreTable` ; format liste plutôt que `{nom: score}`.
+5. **Bugs repérés** dans `game.eat()` : `self.score =+ ...` (affecte au lieu
+   d'ajouter, seule erreur flake8 restante) et `f"points_per_{eaten}"` donne
+   `points_per_supergum` alors que la clé est `points_per_superpacgum` → KeyError.
+6. Temps par niveau 80 ou 90 s ; taille de case / fenêtre (plus grand niveau 23×19,
+   32 px → plateau 736×608 + HUD).
 
 ## Décisions de jeu (text.txt, prises avec Luc)
 
 - Fin du timer = Game Over. 90 s par niveau. 10 niveaux.
 - Taille de fenêtre fixe ; labyrinthes de 10x10 (niveau 1) à 20x20 (niveau 10).
+  ⚠️ Changé par Luc dans `config.json` : de 14×10 à 23×19 (à valider ensemble).
 - Fantômes et super-pacgums dans les 4 coins. Respawn des fantômes après 5 s.
 - Fantômes : rouge = traque, rose = piège, bleu = aléatoire, orange = timide.
 - Cheat mode : `c` pour activer, puis `1` invincibilité, `2` gel des fantômes,
@@ -194,7 +267,7 @@ soit dessiné dans `GameScreen` et pas dans `App._draw()`).
 source .venv/bin/activate          # activer le venv
 pip install pygame flake8 mypy     # (une fois)
 python spike_renderer.py           # test du renderer
-python spike_app.py                # test de la boucle App
+python spike_app.py                # test de la boucle App et des écrans
 flake8 src && mypy src --strict    # vérifier avant chaque commit
                                    # (src/__init__.py doit exister, sinon mypy
                                    #  voit renderer.py "sous deux noms")

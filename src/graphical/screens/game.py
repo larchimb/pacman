@@ -27,7 +27,7 @@ class GameScreen(Screen):
         self._direction: str = "none"
 
     def handle_event(self, event: InputEvent) -> None:
-        """Pause on Escape, remember the last direction key."""
+        """Pause on Space, remember the last direction key."""
         if event.kind != KEY_DOWN:
             return
         if event.key == "space":

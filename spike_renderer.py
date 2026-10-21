@@ -1,6 +1,6 @@
 """Throwaway test of the Renderer (not part of the game)."""
 
-from src.graphical.renderer import Renderer, RendererError
+from src.graphical.renderer import Renderer
 
 renderer = Renderer(640, 480, "Test renderer")
 wall = renderer.new_filled_image(32, 32, 0x2121DE)   # carré bleu

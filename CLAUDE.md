@@ -110,12 +110,12 @@ src/graphical/
 ├── screens/
 │   ├── __init__.py
 │   ├── screen.py       Screen : classe mère (handle_event, update, draw) (FAIT)
-│   ├── menu.py         MenuScreen (FAIT, version test : Entrée / Échap)
-│   ├── game.py         GameScreen (plateau + HUD) (FAIT, version test : direction)
-│   ├── pause.py        PauseScreen (FAIT, version test : reprendre / M = menu)
-│   ├── end.py          EndScreen (game over / victoire + saisie du nom)
-│   ├── highscores.py   HighscoresScreen
-│   └── instructions.py InstructionsScreen
+│   ├── menu.py         MenuScreen (FAIT, version test : Entrée / Échap / H / I)
+│   ├── game.py         GameScreen (plateau + HUD) (FAIT, version test : direction, G / V)
+│   ├── pause.py        PauseScreen (FAIT, version test : Espace = reprendre / M = menu)
+│   ├── end.py          EndScreen (game over / victoire + saisie du nom) (FAIT, version test : Entrée)
+│   ├── highscores.py   HighscoresScreen (FAIT, version test : texte fixe)
+│   └── instructions.py InstructionsScreen (FAIT, version test : texte fixe)
 ├── board_view.py       BoardView : murs, pacgums, Pac-Man, fantômes
 └── hud.py              draw_hud() : score, vies, niveau, temps, cheat actif
 src/highscores.py       HighscoreTable : charger / ajouter / top 10 / sauvegarder (JSON)
@@ -150,12 +150,25 @@ pacman.spec             PyInstaller (à la racine)
   `self._screen.handle_event(event)` (Échap change de sens selon l'écran).
 - `_draw()` : `clear()` → `self._screen.draw(renderer)` → `present()`.
 - Méthodes publiques appelées par les écrans : `change_screen(screen)`, `quit()`,
-  `show_menu()`, `start_game()`, `pause(game)`.
+  `show_menu()`, `show_highscores()`, `show_instructions()`, `start_game()`,
+  `pause(game)`, `end_game(won, score)`.
 - Imports absolus depuis la racine : `from src.graphical.screens.menu import ...`
   (chemin du fichier, `/` → `.`, sans `.py`).
 - Test : `spike_app.py` à la racine (`App(640, 480, "Pac-Man").run()`).
 
-## Machine à états des écrans (carte 3, en cours)
+## Machine à états des écrans (carte 3, faite le 21 oct.)
+
+Carte Trello « Machine à états des écrans » :
+- Définir les états : Menu, Jeu, Pause, Fin, Saisie du nom, Highscores, Instructions
+  → fait ; **« Saisie du nom » est intégrée à `EndScreen`** (décision du 21 oct. :
+  l'écran de fin connaît déjà le score, pas besoin d'un écran de plus). La saisie
+  elle-même se code à la carte 7.
+- Transitions : Menu → Jeu → Fin → Saisie du nom → Menu → fait (Fin + saisie = `EndScreen`).
+- Router le clavier vers l'écran actif → fait : `App._handle_events()` traite `QUIT`
+  (règle globale), puis donne tout le reste à `self._screen.handle_event(event)`.
+  La pause n'est **pas** une règle globale : `App` ne sait pas quel écran est
+  affiché, seul `GameScreen` sait qu'une partie est en cours.
+
 
 - `Screen` (classe mère) : `self._app`, méthodes vides `handle_event`, `update`,
   `draw(renderer)`. Les enfants ne redéfinissent que ce dont ils ont besoin
@@ -169,11 +182,24 @@ pacman.spec             PyInstaller (à la racine)
 - `PauseScreen(app, game)` garde **le même objet** `GameScreen` → reprendre =
   `change_screen(self._game)` (partie conservée) ; `start_game()` = nouvel objet.
 - `DIRECTION_KEYS` (flèches + WASD) est maintenant dans `screens/game.py`.
-- Transitions faites (3.2a) : Menu —Entrée→ Jeu —Échap→ Pause —Échap/Entrée→ Jeu ;
-  Pause —M→ Menu ; Menu —Échap→ quitter ; croix → quitter partout.
-- Reste (3.2b) : `EndScreen` (Fin + saisie du nom), `HighscoresScreen`,
-  `InstructionsScreen` et leurs transitions (Jeu → Fin → Menu, Menu ↔ Highscores,
-  Menu ↔ Instructions), touches de test temporaires en attendant le vrai `Game`.
+- `EndScreen(app, won, score)` reçoit ses données par le constructeur (comme
+  `PauseScreen(app, game)`) ; le texte Victory / Game over est choisi dans `draw`.
+- Transitions (toutes faites) :
+  ```
+  Menu ──Entrée──► Jeu ──Espace──► Pause ──Espace──► Jeu
+   │                │                └──M──► Menu
+   │                └──G / V (test)──► Fin ──Entrée──► Menu
+   ├──H (test)──► Highscores ──Échap──► Menu
+   ├──I (test)──► Instructions ──Échap──► Menu
+   └──Échap──► quitter        (croix → quitter partout)
+  ```
+- **Pause / reprise = Espace** (décision du 21 oct., le sujet n'impose aucune touche).
+  Échap ne fait rien en jeu.
+- Touches de test temporaires : H / I dans le menu (remplacées par le menu à
+  curseur, carte 4), G / V dans le jeu (remplacées par `game.is_over` / `is_won`).
+- Piège vu : `key in "space"` teste une **sous-chaîne** (`"s"`, `"a"`, `""` → True) ;
+  `key in ("escape", "return")` teste l'appartenance à un **tuple**. Pour une
+  seule touche : `==`.
 
 ## Notions vues (pour la soutenance)
 
@@ -184,6 +210,10 @@ pacman.spec             PyInstaller (à la racine)
 - Bits des murs (N=1, E=2, S=4, W=8) et `cell & bit`.
 - Héritage, `super()`, polymorphisme, ordre de résolution (`__mro__`) ;
   « hérite de » (MenuScreen → Screen) ≠ « utilise » (App → écran).
+- Polymorphisme dans `App._draw()` : `self._screen.draw()` sans savoir quel écran.
+- Créer un objet = repartir de zéro (`start_game()` → direction `"none"`) ;
+  réutiliser la référence = conserver l'état (reprise de la pause). Un objet plus
+  référencé est détruit automatiquement (garbage collector, pas de `free`).
 
 ## Plan, étape par étape (lié aux cartes Trello jaunes)
 
@@ -192,7 +222,7 @@ pacman.spec             PyInstaller (à la racine)
 | 1 | Choisir et tester la bibliothèque | `Renderer` + `spike_renderer.py` (images, texte, clavier) | fait (packageable : vérifié à l'étape 2b) |
 | 2 | Fenêtre graphique minimale | `App.run()` : boucle à cadence fixe (60 FPS via `time`), flèches + WASD, Échap / croix sans traceback | **fait** (19 oct.) |
 | 2b | Premier build de test | PyInstaller sur le mini-programme, tôt | à faire |
-| 3 | Machine à états des écrans | `Screen` + `App.change_screen()`, écrans vides | **en cours** : 3.1 routage + 3.2a Menu/Jeu/Pause faits (21 oct.), reste 3.2b |
+| 3 | Machine à états des écrans | `Screen` + `App.change_screen()`, écrans vides | **fait** (21 oct.) : 7 états (saisie du nom dans `EndScreen`), routage |
 | 4 | Menu principal | Start, Highscores, Instructions, Exit | à faire |
 | 5 | Sprites et rendu du plateau | `assets/` + `BoardView` avec le faux `Game` | à faire |
 | 6 | HUD + Menu pause | `draw_hud()`, `PauseScreen` (en pause, seul « reprendre » marche) | à faire |
@@ -205,8 +235,9 @@ Dates Trello (2026) : rendu final le 7 nov. Sprites 16 oct, machine à états 17
 menu 20 oct, HUD 21 oct, pause 22 oct, fin + saisie 24 oct, premier build 24 oct,
 highscores 27-28 oct, packaging 31 oct.
 
-Prochaine étape : **3.2b** — `EndScreen`, `HighscoresScreen`, `InstructionsScreen`
-et leurs transitions. Ensuite carte 4 (menu) ou 5 (sprites, en retard).
+Prochaine étape : **carte 4 « Menu principal »** (menu à curseur : liste
+`(texte, fonction)` + modulo), puis 2b (premier build), puis 5 (sprites, en retard).
+À chaque nouvelle carte : annoncer son nom et ses sous-tâches (`pacman.json`) avant de coder.
 
 ## Ce que Luc a mis sur `main` (vu le 21 oct., dernier commit `33591a9`, pas encore mergé dans `graphic`)
 
@@ -262,6 +293,7 @@ Points à discuter avec Luc :
   ⚠️ Changé par Luc dans `config.json` : de 14×10 à 23×19 (à valider ensemble).
 - Fantômes et super-pacgums dans les 4 coins. Respawn des fantômes après 5 s.
 - Fantômes : rouge = traque, rose = piège, bleu = aléatoire, orange = timide.
+- Pause / reprise : touche Espace (décision d'Elhadj, 21 oct.).
 - Cheat mode : `c` pour activer, puis `1` invincibilité, `2` gel des fantômes,
   `3` vies en plus, `4` vitesse +, `5` niveau suivant.
 

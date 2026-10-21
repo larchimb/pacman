@@ -27,6 +27,10 @@ Binôme : Elhadj (graphisme, branche `graphic`) et Luc (logique, branche `logic`
 ## Contraintes du sujet à toujours respecter
 
 - Python ≥ 3.10, **flake8**, **mypy** (type hints partout), docstrings PEP 257.
+- **Docstrings sur une seule ligne** (`"""Do X."""`), sans sections Args / Returns /
+  Raises : la docstring dit *ce que fait* la fonction. Le *pourquoi* va dans des
+  commentaires `#` à l'endroit concerné (ex. : pourquoi pas `pygame.init()`).
+  Une docstring en tête de chaque fichier, y compris les `__init__.py`.
 - `make lint` = `flake8 .` + `mypy . --warn-return-any --warn-unused-ignores
   --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs`
   (viser aussi `mypy --strict`).

@@ -2,10 +2,13 @@
 
 import time
 from src.graphical.renderer import QUIT, Renderer
-from src.graphical.screens.menu import MenuScreen
 from src.graphical.screens.screen import Screen
+from src.graphical.screens.menu import MenuScreen
 from src.graphical.screens.game import GameScreen
 from src.graphical.screens.pause import PauseScreen
+from src.graphical.screens.highscores import HighscoresScreen
+from src.graphical.screens.instructions import InstructionsScreen
+from src.graphical.screens.end import EndScreen
 
 
 # Number of frames per second, and duration of one frame in seconds.
@@ -35,6 +38,14 @@ class App:
         """Go to the main menu."""
         self.change_screen(MenuScreen(self))
 
+    def show_highscores(self) -> None:
+        """Go to the highscores screen."""
+        self.change_screen(HighscoresScreen(self))
+
+    def show_instructions(self) -> None:
+        """Go to the instructions screen."""
+        self.change_screen(InstructionsScreen(self))
+
     def start_game(self) -> None:
         """Start a new game."""
         self.change_screen(GameScreen(self))
@@ -42,6 +53,10 @@ class App:
     def pause(self, game: Screen) -> None:
         """Pause the game; the pause screen keeps it to resume it."""
         self.change_screen(PauseScreen(self, game))
+
+    def end_game(self, won: bool, score: int) -> None:
+        """Show the end screen with the result of the game."""
+        self.change_screen(EndScreen(self, won, score))
 
     def run(self) -> None:
         """Run the main loop until the window is closed."""

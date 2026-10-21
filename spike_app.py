@@ -1,3 +1,3 @@
 from src.graphical.app import App
 
-App(640, 480, "Pac-Man").run()
+App(1440, 960, "Pac-Man").run()

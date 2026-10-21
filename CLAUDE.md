@@ -110,12 +110,12 @@ src/graphical/
 ├── screens/
 │   ├── __init__.py
 │   ├── screen.py       Screen : classe mère (handle_event, update, draw) (FAIT)
-│   ├── menu.py         MenuScreen (FAIT, version test : Entrée / Échap / H / I)
+│   ├── menu.py         MenuScreen (FAIT : menu à curseur, 4 options, carte 4)
 │   ├── game.py         GameScreen (plateau + HUD) (FAIT, version test : direction, G / V)
 │   ├── pause.py        PauseScreen (FAIT, version test : Espace = reprendre / M = menu)
 │   ├── end.py          EndScreen (game over / victoire + saisie du nom) (FAIT, version test : Entrée)
 │   ├── highscores.py   HighscoresScreen (FAIT, version test : texte fixe)
-│   └── instructions.py InstructionsScreen (FAIT, version test : texte fixe)
+│   └── instructions.py InstructionsScreen (FAIT : contrôles, règles, triche, carte 4)
 ├── board_view.py       BoardView : murs, pacgums, Pac-Man, fantômes
 └── hud.py              draw_hud() : score, vies, niveau, temps, cheat actif
 src/highscores.py       HighscoreTable : charger / ajouter / top 10 / sauvegarder (JSON)
@@ -195,11 +195,53 @@ Carte Trello « Machine à états des écrans » :
   ```
 - **Pause / reprise = Espace** (décision du 21 oct., le sujet n'impose aucune touche).
   Échap ne fait rien en jeu.
-- Touches de test temporaires : H / I dans le menu (remplacées par le menu à
-  curseur, carte 4), G / V dans le jeu (remplacées par `game.is_over` / `is_won`).
+- Touches de test temporaires : G / V dans le jeu (remplacées plus tard par
+  `game.is_over` / `is_won`). Les touches H / I du menu ont disparu (carte 4).
 - Piège vu : `key in "space"` teste une **sous-chaîne** (`"s"`, `"a"`, `""` → True) ;
   `key in ("escape", "return")` teste l'appartenance à un **tuple**. Pour une
   seule touche : `==`.
+
+## Menu principal (carte 4, faite le 21 oct.)
+
+Carte Trello « Menu principal » (Phase 5, échéance 20 oct.) : Start Game, View
+Highscores (top 10), Instructions (contrôles, règles, touches de triche), Exit.
+
+- Partie 1 (fait, 21 oct., commit `f884484`) : `MenuScreen` à curseur.
+  - `self._options: list[tuple[str, Callable[[], None]]]` = paires (texte, méthode
+    de `App`) **sans parenthèses** : on range la fonction, on ne l'appelle pas.
+    Entrée → `_, action = self._options[self._selected]` puis `action()`.
+  - `self._selected` (index) ; ↑/W : `(selected - 1) % count`, ↓/S :
+    `(selected + 1) % count`, avec `count = len(self._options)` (pas de `% 4` en dur).
+  - `draw` : `enumerate(self._options)`, `y = OPTIONS_Y + index * LINE_HEIGHT`,
+    sélection en jaune avec `"> "`, aide grise sous la dernière option.
+  - Échap quitte toujours depuis le menu (carte 2 : fermeture croix + Échap).
+  - Le « top 10 » n'est pas dans cette carte : il vient avec les cartes highscores.
+- Partie 2 (fait, 21 oct.) : texte complet d'`InstructionsScreen` (contrôles, règles,
+  touches de triche ; la carte « Cheat mode » de Luc le demande aussi).
+  - Données séparées du code : constante de module `INSTRUCTIONS:
+    tuple[tuple[int, str], ...]` = lignes `(couleur, texte)` ; `""` = ligne vide.
+    Tuple car il ne change jamais (≠ `self._options` du menu, qui a besoin de `app`).
+  - `draw` : `enumerate`, `if text:` (chaîne vide = fausse) ; la ligne vide garde
+    son index pour décaler les suivantes.
+  - Pas de nombres venant de la config (points, vies, temps) écrits en dur : la
+    config peut être modifiée en soutenance.
+  - ⚠️ Pavé numérique (text.txt) : le renderer ne traduit que `K_0`…`K_9` ; les
+    touches `K_KP1`… donnent `""`. À ajouter dans `_SPECIAL_KEYS` si on garde le
+    pavé (voir avec Luc, carte Cheat mode).
+
+## Taille de la fenêtre et du texte (décidé le 21 oct.)
+
+- PC de l'école : écran **3840 × 2160 (4K) sans mise à l'échelle** → pygame compte
+  en pixels physiques, tout paraît petit. Mac (Retina) : pygame compte en **points**
+  (MacBook Air 15" ≈ 1710 × 1112). `pygame.transform.scale` étant interdit, une
+  taille fixe doit rentrer sur le plus petit écran (le Mac).
+- **Fenêtre fixe 1440 × 960** (testée dans `spike_app.py`).
+- **`FONT_SIZE = 32`** dans `renderer.py` (une ligne fait 24 px de haut) ; menu :
+  `OPTIONS_Y = 140`, `LINE_HEIGHT = 50` ; instructions : `LINE_HEIGHT = 34`.
+- Proposition à envoyer à Luc : HUD de 80 px en haut → plateau 1440 × 880 ;
+  cases de 32 px → **labyrinthe de 45 × 27 cases maximum** (cases max = plateau
+  ÷ taille de case, division entière). Son plus grand niveau (23 × 19) rentre.
+- La taille de case (32 px) fixe la taille des sprites (carte 5) : un sprite = une taille.
 
 ## Notions vues (pour la soutenance)
 
@@ -214,6 +256,19 @@ Carte Trello « Machine à états des écrans » :
 - Créer un objet = repartir de zéro (`start_game()` → direction `"none"`) ;
   réutiliser la référence = conserver l'état (reprise de la pause). Un objet plus
   référencé est détruit automatiquement (garbage collector, pas de `free`).
+- Couleurs `0xRRGGBB` : 3 octets rouge / vert / bleu (0 à 255) ; `FFFF00` jaune,
+  `FFFFFF` blanc, 3 valeurs égales = gris (`888888`), `000000` noir.
+- Coordonnées : origine en haut à gauche, x vers la droite, **y vers le bas**.
+- Modulo `%` = reste de la division ; `(i + 1) % n` boucle comme une horloge.
+  Python : `-1 % 4 == 3` (C : `-1`). `%` est prioritaire sur `+` → parenthèses.
+- Une fonction est une valeur : `f` = la fonction (comme un pointeur en C),
+  `f()` = l'appel. Avec `app.quit()` dans la liste du menu : appels immédiats,
+  la liste contiendrait `None` → `None()` = TypeError ; **mypy l'attrape**
+  grâce au type `Callable[[], None]`.
+- Séparer les données (tuple de lignes) du code (boucle `draw`) ; constante de
+  module + tuple pour ce qui ne change jamais ; `tuple[X, ...]` = longueur libre.
+- Pixels physiques (Linux 4K) vs points (Mac Retina) ; pourquoi une taille fixe
+  doit viser le plus petit écran quand on ne peut pas redimensionner l'image.
 
 ## Plan, étape par étape (lié aux cartes Trello jaunes)
 
@@ -223,7 +278,7 @@ Carte Trello « Machine à états des écrans » :
 | 2 | Fenêtre graphique minimale | `App.run()` : boucle à cadence fixe (60 FPS via `time`), flèches + WASD, Échap / croix sans traceback | **fait** (19 oct.) |
 | 2b | Premier build de test | PyInstaller sur le mini-programme, tôt | à faire |
 | 3 | Machine à états des écrans | `Screen` + `App.change_screen()`, écrans vides | **fait** (21 oct.) : 7 états (saisie du nom dans `EndScreen`), routage |
-| 4 | Menu principal | Start, Highscores, Instructions, Exit | à faire |
+| 4 | Menu principal | Start, Highscores, Instructions, Exit | **fait** (21 oct.) : menu à curseur + écran Instructions complet |
 | 5 | Sprites et rendu du plateau | `assets/` + `BoardView` avec le faux `Game` | à faire |
 | 6 | HUD + Menu pause | `draw_hud()`, `PauseScreen` (en pause, seul « reprendre » marche) | à faire |
 | 7 | Game Over / Victoire + saisie du nom | max 10 caractères, alphanumérique + espaces, effacement | à faire |
@@ -235,8 +290,8 @@ Dates Trello (2026) : rendu final le 7 nov. Sprites 16 oct, machine à états 17
 menu 20 oct, HUD 21 oct, pause 22 oct, fin + saisie 24 oct, premier build 24 oct,
 highscores 27-28 oct, packaging 31 oct.
 
-Prochaine étape : **carte 4 « Menu principal »** (menu à curseur : liste
-`(texte, fonction)` + modulo), puis 2b (premier build), puis 5 (sprites, en retard).
+Prochaine étape : **2b « Premier build de test »** (PyInstaller), puis 5 (sprites,
+en retard). Envoyer à Luc la taille de fenêtre / le nombre de cases max.
 À chaque nouvelle carte : annoncer son nom et ses sous-tâches (`pacman.json`) avant de coder.
 
 ## Ce que Luc a mis sur `main` (vu le 21 oct., dernier commit `33591a9`, pas encore mergé dans `graphic`)
@@ -283,8 +338,9 @@ Points à discuter avec Luc :
 5. **Bugs repérés** dans `game.eat()` : `self.score =+ ...` (affecte au lieu
    d'ajouter, seule erreur flake8 restante) et `f"points_per_{eaten}"` donne
    `points_per_supergum` alors que la clé est `points_per_superpacgum` → KeyError.
-6. Temps par niveau 80 ou 90 s ; taille de case / fenêtre (plus grand niveau 23×19,
-   32 px → plateau 736×608 + HUD).
+6. Temps par niveau 80 ou 90 s ; taille de case / fenêtre : proposer 1440 × 960,
+   HUD 80 px, cases 32 px → 45 × 27 cases max (voir « Taille de la fenêtre »).
+7. Touches de triche au pavé numérique ou chiffres du haut du clavier.
 
 ## Décisions de jeu (text.txt, prises avec Luc)
 
@@ -299,8 +355,13 @@ Points à discuter avec Luc :
 
 ## Commandes utiles
 
+Sur les PC de l'école : **pas de venv**, pygame / flake8 / mypy sont installés
+avec `pip install --user` (dans `~/.local/lib/python3.13/site-packages/`). Le
+dossier `.venv` qui apparaît dans le projet est vide et inutile. Pour plus tard :
+ajouter `pygame` aux dépendances de `pyproject.toml` (fichier commun, avec Luc).
+
 ```bash
-source .venv/bin/activate          # activer le venv
+source .venv/bin/activate          # activer le venv (chez moi, pas à l'école)
 pip install pygame flake8 mypy     # (une fois)
 python spike_renderer.py           # test du renderer
 python spike_app.py                # test de la boucle App et des écrans

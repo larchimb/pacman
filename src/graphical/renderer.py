@@ -85,6 +85,8 @@ class Renderer:
     def __init__(self, width: int, height: int, title: str) -> None:
         """Open the game window (mlx_init + mlx_new_window)."""
         try:
+            # Only display and text: pygame.init() would also start the
+            # sound system, which MLX does not have.
             pygame.display.init()
             pygame.font.init()
             self._window = pygame.display.set_mode((width, height))

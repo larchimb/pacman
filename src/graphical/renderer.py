@@ -32,7 +32,7 @@ import pygame
 
 # Size of the text drawn by string_put. MLX only has one fixed font,
 # so we never change it.
-FONT_SIZE: int = 20
+FONT_SIZE: int = 32
 
 QUIT: str = "quit"
 KEY_DOWN: str = "key_down"

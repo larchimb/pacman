@@ -19,8 +19,8 @@ HELP_COLOR: int = 0x888888
 
 # Position of the first option and space between two options, in pixels.
 OPTIONS_X: int = 40
-OPTIONS_Y: int = 120
-LINE_HEIGHT: int = 40
+OPTIONS_Y: int = 140
+LINE_HEIGHT: int = 50
 
 
 class MenuScreen(Screen):

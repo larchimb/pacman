@@ -15,9 +15,16 @@ class MenuScreen(Screen):
             self._app.start_game()
         elif event.key == "escape":
             self._app.quit()
+        elif event.key == "h":
+            self._app.show_highscores()
+        elif event.key == "i":
+            self._app.show_instructions()
 
     def draw(self, renderer: Renderer) -> None:
         """Draw the menu."""
         renderer.string_put(20, 20, 0xFFFF00, "MENU")
         renderer.string_put(20, 50, 0xFFFFFF, "Enter: start")
         renderer.string_put(20, 80, 0xFFFFFF, "Escape: quit")
+        # Temporary test keys, replaced by the real menu (card 4).
+        renderer.string_put(20, 110, 0xFFFFFF, "H: highscores")
+        renderer.string_put(20, 140, 0xFFFFFF, "I: instructions")

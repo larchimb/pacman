@@ -154,7 +154,7 @@ pacman.spec             PyInstaller (à la racine)
   `pause(game)`, `end_game(won, score)`.
 - Imports absolus depuis la racine : `from src.graphical.screens.menu import ...`
   (chemin du fichier, `/` → `.`, sans `.py`).
-- Test : `spike_app.py` à la racine (`App(640, 480, "Pac-Man").run()`).
+- Test : `spike_app.py` à la racine (`App(1440, 960, "Pac-Man").run()`).
 
 ## Machine à états des écrans (carte 3, faite le 21 oct.)
 
@@ -184,14 +184,14 @@ Carte Trello « Machine à états des écrans » :
 - `DIRECTION_KEYS` (flèches + WASD) est maintenant dans `screens/game.py`.
 - `EndScreen(app, won, score)` reçoit ses données par le constructeur (comme
   `PauseScreen(app, game)`) ; le texte Victory / Game over est choisi dans `draw`.
-- Transitions (toutes faites) :
+- Transitions (toutes faites ; menu à curseur depuis la carte 4) :
   ```
-  Menu ──Entrée──► Jeu ──Espace──► Pause ──Espace──► Jeu
-   │                │                └──M──► Menu
-   │                └──G / V (test)──► Fin ──Entrée──► Menu
-   ├──H (test)──► Highscores ──Échap──► Menu
-   ├──I (test)──► Instructions ──Échap──► Menu
-   └──Échap──► quitter        (croix → quitter partout)
+  Menu ──Start Game──► Jeu ──Espace──► Pause ──Espace──► Jeu
+   │                    │                └──M──► Menu
+   │                    └──G / V (test)──► Fin ──Entrée──► Menu
+   ├──Highscores──► Highscores ──Échap──► Menu
+   ├──Instructions──► Instructions ──Échap──► Menu
+   └──Exit / Échap──► quitter        (croix → quitter partout)
   ```
 - **Pause / reprise = Espace** (décision du 21 oct., le sujet n'impose aucune touche).
   Échap ne fait rien en jeu.
@@ -228,6 +228,34 @@ Highscores (top 10), Instructions (contrôles, règles, touches de triche), Exit
   - ⚠️ Pavé numérique (text.txt) : le renderer ne traduit que `K_0`…`K_9` ; les
     touches `K_KP1`… donnent `""`. À ajouter dans `_SPECIAL_KEYS` si on garde le
     pavé (voir avec Luc, carte Cheat mode).
+
+## Menu pause (carte, échéance 22 oct., en cours)
+
+Carte Trello « Menu pause » : Reprendre la partie ; Retour au menu principal
+(abandon de la partie). Le sujet (pacman.pdf, « Pause Menu ») impose ces **deux**
+choix : sans « retour au menu », on ne pourrait quitter une partie qu'en perdant.
+
+- État (22 oct.) : les deux sous-tâches marchent déjà (Espace = reprendre, M = menu).
+- Reste à décider / faire :
+  - raccourcis (actuel) **ou** curseur ↑ / ↓ + Entrée comme le menu principal
+    (les deux respectent le sujet) ;
+  - afficher la partie figée derrière : `self._game.draw(renderer)` avant le texte
+    « PAUSE » (confort, pas exigé ; la partie ne bouge pas car seul
+    `PauseScreen.update()` est appelé).
+- Hors carte : timer et fantômes arrêtés en pause = carte verte « Règles de partie »
+  (déjà vrai : `GameScreen.update()` n'est plus appelé pendant la pause).
+
+## Écrans Game Over / Victoire et saisie du nom (carte, échéance 24 oct., à faire)
+
+| Sous-tâche Trello | État (22 oct.) |
+|---|---|
+| Écran Game Over avec score final | 🟡 écran fait, score = 0 (touche de test G) |
+| Écran Victoire avec score final et message de félicitations | 🟡 écran fait, pas de félicitations, score = 0 |
+| Saisie du nom : max 10 caractères, alphanumérique + espaces, effacement | ❌ |
+| Validation → sauvegarde du score → retour au menu | 🟡 retour au menu fait ; saisie et sauvegarde non |
+
+- La saisie se fait dans `EndScreen` (décision du 21 oct.).
+- Vrai score : avec le `Game` de Luc. Sauvegarde : avec `HighscoreTable` (cartes highscores).
 
 ## Taille de la fenêtre et du texte (décidé le 21 oct.)
 
@@ -280,8 +308,8 @@ Highscores (top 10), Instructions (contrôles, règles, touches de triche), Exit
 | 3 | Machine à états des écrans | `Screen` + `App.change_screen()`, écrans vides | **fait** (21 oct.) : 7 états (saisie du nom dans `EndScreen`), routage |
 | 4 | Menu principal | Start, Highscores, Instructions, Exit | **fait** (21 oct.) : menu à curseur + écran Instructions complet |
 | 5 | Sprites et rendu du plateau | `assets/` + `BoardView` avec le faux `Game` | à faire |
-| 6 | HUD + Menu pause | `draw_hud()`, `PauseScreen` (en pause, seul « reprendre » marche) | à faire |
-| 7 | Game Over / Victoire + saisie du nom | max 10 caractères, alphanumérique + espaces, effacement | à faire |
+| 6 | HUD + Menu pause | `draw_hud()`, `PauseScreen` (reprendre / retour au menu) | pause **en cours** (2 sous-tâches marchent) ; HUD à faire |
+| 7 | Game Over / Victoire + saisie du nom | max 10 caractères, alphanumérique + espaces, effacement | à faire (écrans en version test) |
 | 8 | Highscores | JSON robuste (absent / corrompu), top 10 trié, affichés dans le menu | à faire |
 | 9 | Packaging final | `pacman.spec`, assets inclus, Itch.io | à faire |
 | — | Intégration | remplacer le stub par le vrai `Game` de Luc | à faire |
@@ -290,7 +318,8 @@ Dates Trello (2026) : rendu final le 7 nov. Sprites 16 oct, machine à états 17
 menu 20 oct, HUD 21 oct, pause 22 oct, fin + saisie 24 oct, premier build 24 oct,
 highscores 27-28 oct, packaging 31 oct.
 
-Prochaine étape : **2b « Premier build de test »** (PyInstaller), puis 5 (sprites,
+Prochaine étape (décidé le 22 oct.) : **finir « Menu pause »**, puis **« Écrans
+Game Over / Victoire et saisie du nom »**, puis 2b (premier build), puis 5 (sprites,
 en retard). Envoyer à Luc la taille de fenêtre / le nombre de cases max.
 À chaque nouvelle carte : annoncer son nom et ses sous-tâches (`pacman.json`) avant de coder.
 

@@ -112,7 +112,7 @@ src/graphical/
 │   ├── screen.py       Screen : classe mère (handle_event, update, draw) (FAIT)
 │   ├── menu.py         MenuScreen (FAIT : menu à curseur, 4 options, carte 4)
 │   ├── game.py         GameScreen (plateau + HUD) (FAIT, version test : direction, G / V)
-│   ├── pause.py        PauseScreen (FAIT, version test : Espace = reprendre / M = menu)
+│   ├── pause.py        PauseScreen (FAIT : curseur Resume / Main menu, partie figée derrière)
 │   ├── end.py          EndScreen (game over / victoire + saisie du nom) (FAIT, version test : Entrée)
 │   ├── highscores.py   HighscoresScreen (FAIT, version test : texte fixe)
 │   └── instructions.py InstructionsScreen (FAIT : contrôles, règles, triche, carte 4)
@@ -186,8 +186,8 @@ Carte Trello « Machine à états des écrans » :
   `PauseScreen(app, game)`) ; le texte Victory / Game over est choisi dans `draw`.
 - Transitions (toutes faites ; menu à curseur depuis la carte 4) :
   ```
-  Menu ──Start Game──► Jeu ──Espace──► Pause ──Espace──► Jeu
-   │                    │                └──M──► Menu
+  Menu ──Start Game──► Jeu ──Espace──► Pause ──Resume / Espace──► Jeu
+   │                    │                └──Main menu──► Menu
    │                    └──G / V (test)──► Fin ──Entrée──► Menu
    ├──Highscores──► Highscores ──Échap──► Menu
    ├──Instructions──► Instructions ──Échap──► Menu
@@ -229,19 +229,25 @@ Highscores (top 10), Instructions (contrôles, règles, touches de triche), Exit
     touches `K_KP1`… donnent `""`. À ajouter dans `_SPECIAL_KEYS` si on garde le
     pavé (voir avec Luc, carte Cheat mode).
 
-## Menu pause (carte, échéance 22 oct., en cours)
+## Menu pause (carte, faite le 22 oct.)
 
 Carte Trello « Menu pause » : Reprendre la partie ; Retour au menu principal
 (abandon de la partie). Le sujet (pacman.pdf, « Pause Menu ») impose ces **deux**
 choix : sans « retour au menu », on ne pourrait quitter une partie qu'en perdant.
 
-- État (22 oct.) : les deux sous-tâches marchent déjà (Espace = reprendre, M = menu).
-- Reste à décider / faire :
-  - raccourcis (actuel) **ou** curseur ↑ / ↓ + Entrée comme le menu principal
-    (les deux respectent le sujet) ;
-  - afficher la partie figée derrière : `self._game.draw(renderer)` avant le texte
-    « PAUSE » (confort, pas exigé ; la partie ne bouge pas car seul
-    `PauseScreen.update()` est appelé).
+- Fait (22 oct., testé à l'écran) : **menu à curseur** (choix d'Elhadj), même
+  mécanique que le menu principal : options `("Resume", self._resume)` et
+  `("Main menu", app.show_menu)`, ↑ / ↓ (W / S), Entrée ; **Espace = reprendre
+  directement** (raccourci). Menu centré (`PAUSE_X = 620`, `PAUSE_Y = 380`).
+  - `_resume()` : méthode privée de `PauseScreen` (elle a besoin de `self._game`),
+    rangée sans `()` comme une méthode d'`App` (bound method).
+  - **Partie figée derrière** : `draw` appelle d'abord `self._game.draw(renderer)`,
+    puis le menu. Règle des calques : le dernier dessiné est au-dessus. Figée car
+    seul `PauseScreen.update()` (vide) est appelé, pas `GameScreen.update()`.
+  - Avec le vrai plateau (carte 5), le texte de pause tombera sur les murs → prévoir
+    un rectangle noir derrière (image remplie + `put_image`, autorisé ; la
+    transparence est interdite).
+- Ancienne version (raccourcis Espace / M) : respectait aussi le sujet.
 - Hors carte : timer et fantômes arrêtés en pause = carte verte « Règles de partie »
   (déjà vrai : `GameScreen.update()` n'est plus appelé pendant la pause).
 
@@ -256,6 +262,15 @@ choix : sans « retour au menu », on ne pourrait quitter une partie qu'en perda
 
 - La saisie se fait dans `EndScreen` (décision du 21 oct.).
 - Vrai score : avec le `Game` de Luc. Sauvegarde : avec `HighscoreTable` (cartes highscores).
+- Plan proposé le 22 oct. (à valider au début de la prochaine session) :
+  1. message de félicitations sur l'écran de victoire ;
+  2. saisie du nom dans `EndScreen` : lettres / chiffres ajoutés, Espace = espace,
+     Retour arrière = effacer, 10 caractères max, curseur `_` visible, Entrée
+     valide si le nom n'est pas vide ;
+  3. validation : Entrée → `App` reçoit nom + score → menu ; la sauvegarde réelle
+     se branchera là avec `HighscoreTable`.
+  - Saisie proposée **en victoire et en game over** (sujet : « win or lose, ... the
+    player can enter their name »).
 
 ## Taille de la fenêtre et du texte (décidé le 21 oct.)
 
@@ -297,6 +312,8 @@ choix : sans « retour au menu », on ne pourrait quitter une partie qu'en perda
   module + tuple pour ce qui ne change jamais ; `tuple[X, ...]` = longueur libre.
 - Pixels physiques (Linux 4K) vs points (Mac Retina) ; pourquoi une taille fixe
   doit viser le plus petit écran quand on ne peut pas redimensionner l'image.
+- Ordre de dessin = calques : le dernier dessiné est au-dessus ; dessiner sans
+  appeler `update` = afficher figé (partie derrière la pause).
 
 ## Plan, étape par étape (lié aux cartes Trello jaunes)
 
@@ -308,7 +325,7 @@ choix : sans « retour au menu », on ne pourrait quitter une partie qu'en perda
 | 3 | Machine à états des écrans | `Screen` + `App.change_screen()`, écrans vides | **fait** (21 oct.) : 7 états (saisie du nom dans `EndScreen`), routage |
 | 4 | Menu principal | Start, Highscores, Instructions, Exit | **fait** (21 oct.) : menu à curseur + écran Instructions complet |
 | 5 | Sprites et rendu du plateau | `assets/` + `BoardView` avec le faux `Game` | à faire |
-| 6 | HUD + Menu pause | `draw_hud()`, `PauseScreen` (reprendre / retour au menu) | pause **en cours** (2 sous-tâches marchent) ; HUD à faire |
+| 6 | HUD + Menu pause | `draw_hud()`, `PauseScreen` (reprendre / retour au menu) | pause **faite** (22 oct., curseur + partie figée) ; HUD à faire |
 | 7 | Game Over / Victoire + saisie du nom | max 10 caractères, alphanumérique + espaces, effacement | à faire (écrans en version test) |
 | 8 | Highscores | JSON robuste (absent / corrompu), top 10 trié, affichés dans le menu | à faire |
 | 9 | Packaging final | `pacman.spec`, assets inclus, Itch.io | à faire |
@@ -318,8 +335,8 @@ Dates Trello (2026) : rendu final le 7 nov. Sprites 16 oct, machine à états 17
 menu 20 oct, HUD 21 oct, pause 22 oct, fin + saisie 24 oct, premier build 24 oct,
 highscores 27-28 oct, packaging 31 oct.
 
-Prochaine étape (décidé le 22 oct.) : **finir « Menu pause »**, puis **« Écrans
-Game Over / Victoire et saisie du nom »**, puis 2b (premier build), puis 5 (sprites,
+Prochaine étape : **« Écrans Game Over / Victoire et saisie du nom »** (plan dans
+la section de la carte, à valider), puis 2b (premier build), puis 5 (sprites,
 en retard). Envoyer à Luc la taille de fenêtre / le nombre de cases max.
 À chaque nouvelle carte : annoncer son nom et ses sous-tâches (`pacman.json`) avant de coder.
 

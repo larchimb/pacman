@@ -58,6 +58,10 @@ class App:
         """Show the end screen with the result of the game."""
         self.change_screen(EndScreen(self, won, score))
 
+    def save_score(self, name: str, score: int) -> None:
+        """Save the score of the player, then go back to the menu."""
+        self.show_menu()
+
     def run(self) -> None:
         """Run the main loop until the window is closed."""
         self._running = True

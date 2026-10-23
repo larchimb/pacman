@@ -87,19 +87,41 @@ Principe : **la logique (Luc) et le graphisme (moi) sont séparés.**
 La logique ne fait jamais `import pygame` ; le graphisme ne décide jamais des
 règles, il lit l'état du jeu et le dessine.
 
-Contrat proposé entre nous (à valider avec Luc) — objet `Game` côté logique :
+### Contrat avec Luc (discuté le 22 oct., remplace l'ancien contrat proposé)
+
+**Deux points d'entrée seulement** dans `src/logical/game.py` (`Game`) :
 ```python
-game.maze            # la grille (murs de chaque case)
-game.player          # .x, .y, .direction
-game.ghosts          # liste : .x, .y, .color, .state ("normal"/"edible"/"eaten")
-game.pacgums         # cases avec une pacgum
-game.super_pacgums
-game.score, game.lives, game.level, game.time_left
-game.is_over, game.is_won
-game.set_direction("left")   # graphisme → logique
-game.update(dt)              # graphisme → logique : avancer de dt secondes
+game.handle_action(action: str)   # graphisme → logique : une action du joueur
+game.update(dt: float)            # graphisme → logique : avancer de dt secondes
 ```
-En attendant le vrai `Game`, je travaille avec un faux `Game` (stub).
+Tout le reste = **lecture d'attributs** dans mes `draw` (je ne modifie jamais `Game`) :
+`game.score`, `game.lives`, `game.current_level` (+ 1 pour l'affichage),
+`game.timer`, `game.result` (`"victory"` / `"defeat"` / `None`), `game.level`
+(objet `Level` : grille, `pacman.pos` / `pacman.direction`, `ghosts`, `pacgums`,
+`supergums`).
+
+Chaînes d'action (à copier **exactement**, une faute = action ignorée sans erreur) :
+
+| Touche | Action | Source |
+|---|---|---|
+| Espace | `"pause"` | `game.py` (inverse `game.paused`) |
+| `c` | `"cheat"` | text.txt |
+| `1` / `2` / `3` / `4` / `5` | `"invinsible"` / `"freeze"` / `"life"` / `"speed"` / `"level"` | Luc, 22 oct. |
+| flèches / WASD | **à confirmer** (`"N"`/`"E"`/`"S"`/`"W"` comme `Entity.DIRECTIONS` ?) | — |
+
+À confirmer avec Luc :
+1. Les chaînes des directions (mon `DIRECTION_KEYS` envoie `"up"`/`"down"`… → changer les valeurs).
+2. L'orthographe `"invinsible"` (anglais : `invincible`) : choisir et copier à l'identique.
+3. Pause : je propose de **ne pas** envoyer `"pause"` (mon `PauseScreen` n'appelle
+   plus `update`, ça suffit). Si on l'envoie, il faut le renvoyer en reprenant,
+   sinon `game.paused` reste `True`.
+4. Accès public à la grille (propriété `maze` dans `Level`, au lieu de lire `_maze`).
+
+Forces : interface étroite, sens unique (actions + temps → logique ; état → dessin).
+Faiblesses : chaînes non vérifiées par mypy ; dépendance aux noms d'attributs de Luc.
+
+En attendant que le vrai `Game` marche, je travaille avec un faux `Game` (stub) qui
+imite ces attributs (le vrai plante pour l'instant : `pacgum` = `None`, voir bugs).
 
 Mes fichiers prévus :
 ```
@@ -113,13 +135,14 @@ src/graphical/
 │   ├── menu.py         MenuScreen (FAIT : menu à curseur, 4 options, carte 4)
 │   ├── game.py         GameScreen (plateau + HUD) (FAIT, version test : direction, G / V)
 │   ├── pause.py        PauseScreen (FAIT : curseur Resume / Main menu, partie figée derrière)
-│   ├── end.py          EndScreen (game over / victoire + saisie du nom) (FAIT, version test : Entrée)
+│   ├── end.py          EndScreen (FAIT : game over / victoire + félicitations + saisie du nom)
 │   ├── highscores.py   HighscoresScreen (FAIT, version test : texte fixe)
 │   └── instructions.py InstructionsScreen (FAIT : contrôles, règles, triche, carte 4)
+├── fake_game.py        FakeGame : faux Game (mêmes attributs que Luc), temporaire (FAIT, pas committé)
 ├── board_view.py       BoardView : murs, pacgums, Pac-Man, fantômes
 └── hud.py              draw_hud() : score, vies, niveau, temps, cheat actif
 src/highscores.py       HighscoreTable : charger / ajouter / top 10 / sauvegarder (JSON)
-assets/                 sprites PNG
+assets/                 sprites PNG 32 × 32 (FAIT : 11 sprites arcade, 23 oct.)
 pacman.spec             PyInstaller (à la racine)
 ```
 
@@ -128,7 +151,8 @@ pacman.spec             PyInstaller (à la racine)
 - Couleurs au format MLX `0xRRGGBB` (entiers), converties par `to_rgb()`.
 - `InputEvent(kind, key)` : kind = `"quit"`, `"key_down"`, `"key_up"` ;
   key = `"up"`, `"down"`, `"left"`, `"right"`, `"escape"`, `"space"`,
-  `"return"`, `"backspace"`, lettres `a-z`, chiffres `0-9`, ou `""` si non gérée.
+  `"return"`, `"backspace"`, `"shift"` (Maj gauche et droite, ajouté le 23 oct.),
+  lettres `a-z` (toujours en minuscules, comme MLX), chiffres `0-9`, ou `""`.
 - `RendererError` pour les erreurs (fenêtre, image introuvable).
 - Méthodes : `get_screen_size()` (static), `new_image`, `new_filled_image`,
   `image_pixel_put`, `load_image` (avec cache), `clear`, `pixel_put`,
@@ -151,7 +175,8 @@ pacman.spec             PyInstaller (à la racine)
 - `_draw()` : `clear()` → `self._screen.draw(renderer)` → `present()`.
 - Méthodes publiques appelées par les écrans : `change_screen(screen)`, `quit()`,
   `show_menu()`, `show_highscores()`, `show_instructions()`, `start_game()`,
-  `pause(game)`, `end_game(won, score)`.
+  `pause(game)`, `end_game(won, score)`, `save_score(name, score)` (pour l'instant
+  revient juste au menu ; `HighscoreTable` sauvegardera ici).
 - Imports absolus depuis la racine : `from src.graphical.screens.menu import ...`
   (chemin du fichier, `/` → `.`, sans `.py`).
 - Test : `spike_app.py` à la racine (`App(1440, 960, "Pac-Man").run()`).
@@ -188,7 +213,7 @@ Carte Trello « Machine à états des écrans » :
   ```
   Menu ──Start Game──► Jeu ──Espace──► Pause ──Resume / Espace──► Jeu
    │                    │                └──Main menu──► Menu
-   │                    └──G / V (test)──► Fin ──Entrée──► Menu
+   │                    └──G / V (test)──► Fin ──Entrée (nom) / Échap──► Menu
    ├──Highscores──► Highscores ──Échap──► Menu
    ├──Instructions──► Instructions ──Échap──► Menu
    └──Exit / Échap──► quitter        (croix → quitter partout)
@@ -251,26 +276,68 @@ choix : sans « retour au menu », on ne pourrait quitter une partie qu'en perda
 - Hors carte : timer et fantômes arrêtés en pause = carte verte « Règles de partie »
   (déjà vrai : `GameScreen.update()` n'est plus appelé pendant la pause).
 
-## Écrans Game Over / Victoire et saisie du nom (carte, échéance 24 oct., à faire)
+## Écrans Game Over / Victoire et saisie du nom (carte, faite le 23 oct., commit `8fdd1c1`)
 
-| Sous-tâche Trello | État (22 oct.) |
+| Sous-tâche Trello | État (23 oct.) |
 |---|---|
-| Écran Game Over avec score final | 🟡 écran fait, score = 0 (touche de test G) |
-| Écran Victoire avec score final et message de félicitations | 🟡 écran fait, pas de félicitations, score = 0 |
-| Saisie du nom : max 10 caractères, alphanumérique + espaces, effacement | ❌ |
-| Validation → sauvegarde du score → retour au menu | 🟡 retour au menu fait ; saisie et sauvegarde non |
+| Écran Game Over avec score final | ✅ (score = 0 tant qu'il n'y a pas de `Game`) |
+| Écran Victoire avec score final et message de félicitations | ✅ « Congratulations, you cleared every level! » |
+| Saisie du nom : max 10 caractères, alphanumérique + espaces, effacement | ✅ |
+| Validation → sauvegarde du score → retour au menu | ✅ validation + retour ; **sauvegarde** = cartes highscores |
 
-- La saisie se fait dans `EndScreen` (décision du 21 oct.).
-- Vrai score : avec le `Game` de Luc. Sauvegarde : avec `HighscoreTable` (cartes highscores).
-- Plan proposé le 22 oct. (à valider au début de la prochaine session) :
-  1. message de félicitations sur l'écran de victoire ;
-  2. saisie du nom dans `EndScreen` : lettres / chiffres ajoutés, Espace = espace,
-     Retour arrière = effacer, 10 caractères max, curseur `_` visible, Entrée
-     valide si le nom n'est pas vide ;
-  3. validation : Entrée → `App` reçoit nom + score → menu ; la sauvegarde réelle
-     se branchera là avec `HighscoreTable`.
-  - Saisie proposée **en victoire et en game over** (sujet : « win or lose, ... the
-    player can enter their name »).
+- Saisie dans `EndScreen`, **en victoire et en game over** (sujet : « win or lose »).
+- **Facultative** : le sujet dit « *Allow* players to enter their name » (l. 382) et
+  « the player *can* enter their name » (l. 521) → **Échap = menu sans sauvegarder**.
+- `self._name` (chaîne) : lettre / chiffre ajouté si `len(key) == 1 and
+  key.isalnum()` (le `len == 1` rejette `"up"`, `"escape"`… qui sont aussi
+  alphanumériques), `"space"` → `" "`, `"backspace"` → `self._name[:-1]` (pas
+  d'erreur si vide), max `MAX_NAME_LENGTH = 10`, curseur `_` caché quand c'est plein.
+- **Majuscules** : `self._shift` suivi via KEY_DOWN / KEY_UP de `"shift"` (comme MLX,
+  pas de `get_pressed`) ; le test de `"shift"` est placé **avant** le filtre
+  `if kind != KEY_DOWN: return`, sinon le relâchement serait jeté et Maj resterait
+  « enfoncée ». `key.upper() if self._shift else key` (ternaire).
+- Entrée : `name = self._name.strip()` ; si non vide → `app.save_score(name, score)`.
+- Mise en page : ligne n → `END_Y + n * LINE_HEIGHT` ; ligne 1 réservée aux
+  félicitations (vide en game over) pour que score et nom restent au même endroit.
+- ⚠️ Clavier AZERTY : les chiffres du haut donnent `&`, `é`… → `""` (à tester sur le Mac).
+- Le nom et le score ne s'affichent pas encore dans Highscores : normal, c'est
+  `HighscoreTable` (cartes « Stockage persistant » et « Robustesse et top 10 »).
+
+## Sprites et rendu du plateau (carte 5, en cours depuis le 23 oct.)
+
+Carte Trello « Sprites et rendu du plateau » (Phase 5, échéance 16 oct.) : Dessin des
+murs et des couloirs ; Pacgums et super-pacgums ; Sprite du joueur orienté selon la
+direction ; Sprites des fantômes : normal / comestible / mangé.
+
+Plan en 4 étapes :
+- **Étape 0 (faite, 23 oct.)** : `src/graphical/fake_game.py` (pas committé : il le
+  sera avec `board_view.py`, qui en dépendra).
+  - `FakeEntity` (`@dataclass`, non frozen) : `pos: tuple[int, int]` (en **cases**),
+    `direction: str | None` (`"N"`/`"E"`/`"S"`/`"W"` comme Luc).
+  - `FakeLevel(width, height, seed)` : `maze` = grille du **vrai** `MazeGenerator`
+    (public, ce qu'on demande à Luc), `pacman` au centre `((w-1)//2, (h-1)//2)`
+    tourné `"E"`, `ghosts` aux 4 coins **dans l'ordre de Luc** (index = couleur :
+    0 rouge, 1 rose, 2 bleu, 3 orange), `supergums` = les 4 coins (`set`),
+    `pacgums` = 50 cases libres tirées par `random.sample` (hors `CLOSED_CELL = 15`,
+    coins et case de Pac-Man).
+  - `FakeGame` : `level` = `FakeLevel(23, 19, seed=42)` (le plus grand niveau),
+    `score`, `lives`, `current_level`, `timer`, `result` ; `handle_action` ne fait que
+    tourner Pac-Man (pour tester les sprites) ; `update(dt)` avance `timer`.
+  - Duck typing : mêmes noms d'attributs que Luc → à l'intégration, remplacer
+    `FakeGame()` par `Game(config)` sans toucher au dessin.
+  - Test : `spike_fake_game.py` (ignoré par git) affiche le plateau en texte
+    (`P`, `G`, `#` pour le « 42 », `.` pour les pacgums).
+- **Sprites (faits, 23 oct.)** : `assets/` = `pacman_right/left/up/down/closed.png`,
+  `ghost_red/pink/blue/orange.png`, `ghost_edible.png`, `ghost_eaten.png` (32 × 32,
+  style arcade, **fond noir** → pas de transparence, interdite en MLX). Générés par
+  programme avec l'aide de l'IA (script non gardé dans le dépôt car il utilise pygame
+  hors du renderer) → **à déclarer dans « Resources » du README**. `assets/preview.png`
+  = aperçu agrandi, **ne pas committer** (à supprimer).
+- **Étape 1** : `board_view.py`, murs et couloirs (bits N/E/S/W → barres d'image,
+  cases 15 pleines), plateau centré sous le HUD de 80 px, affiché dans `GameScreen`.
+- **Étape 2** : pacgums (petit point) et super-pacgums (gros point), générés dans le code.
+- **Étape 3** : Pac-Man orienté (un sprite par direction) et fantômes (couleur par
+  index ; état comestible / mangé à ajouter au contrat avec Luc).
 
 ## Taille de la fenêtre et du texte (décidé le 21 oct.)
 
@@ -285,6 +352,24 @@ choix : sans « retour au menu », on ne pourrait quitter une partie qu'en perda
   cases de 32 px → **labyrinthe de 45 × 27 cases maximum** (cases max = plateau
   ÷ taille de case, division entière). Son plus grand niveau (23 × 19) rentre.
 - La taille de case (32 px) fixe la taille des sprites (carte 5) : un sprite = une taille.
+
+## Git : fichiers suivis et PR (23 oct.)
+
+- Commit `5255472` : `spike_app.py`, `spike_renderer.py`, `pacman.json` ne sont plus
+  suivis (`git rm --cached`, toujours sur le disque) ; `.gitignore` = `pacman.pdf`,
+  `pacman.json`, `spike_*.py`, `.venv/`, `__pycache__/`, `.mypy_cache/`.
+  `.gitignore` n'existe pas sur `main` : la PR l'apportera (prévenir Luc).
+- **`CLAUDE.md` reste suivi volontairement** (synchro école ↔ Mac). Manip à chaque PR :
+  avant → `git rm --cached CLAUDE.md` + commit + push ; après la fusion →
+  `git add CLAUDE.md` + commit + push. Ne pas faire `git pull` sur le Mac entre les
+  deux (le fichier y serait supprimé). Vérifier « Files changed » avant chaque PR.
+- **`text.txt` est aussi sur `main`** : ne pas le supprimer sur `graphic` (la PR le
+  supprimerait chez Luc). Mes modifications locales non committées de `text.txt`
+  contiennent des notes perso (procédure git) → ne pas les committer telles quelles.
+- Merge `origin/main` → `graphic` fait le 23 oct. (`1aed9dc`, aucun conflit), poussé.
+  PR `graphic` → `main` **pas encore ouverte** (pas de `gh` ici : passer par le site).
+- ⚠️ `src/logical/game.py` modifié en local (ligne vide de fin supprimée, sans doute
+  par l'éditeur) : fichier de Luc → `git restore src/logical/game.py` ou le prévenir.
 
 ## Notions vues (pour la soutenance)
 
@@ -314,6 +399,25 @@ choix : sans « retour au menu », on ne pourrait quitter une partie qu'en perda
   doit viser le plus petit écran quand on ne peut pas redimensionner l'image.
 - Ordre de dessin = calques : le dernier dessiné est au-dessus ; dessiner sans
   appeler `update` = afficher figé (partie derrière la pause).
+- `LINE_HEIGHT` = pas entre le **haut** de deux lignes (texte 24 px + vide) ;
+  `string_put(x, y)` place le coin haut-gauche ; < 24 → les lignes se chevauchent.
+- Suivre une touche maintenue (Maj) avec KEY_DOWN / KEY_UP ; `str.isalnum()`,
+  slicing `s[:-1]`, `strip()`, ternaire `a if cond else b`, `x = (a == b)` range un booléen.
+- Git : disque / index / dépôt ; `git rm --cached` = arrêter de suivre sans
+  supprimer du disque ; `.gitignore` n'agit que sur les fichiers **non suivis** ;
+  `fetch` (télécharge dans `origin/main`) ≠ `merge` (intègre) ; fusion à trois
+  (ancêtre commun) : seules **mes modifications** sont appliquées, une suppression
+  en est une ; fast-forward ; `git stash` / `stash pop` ; une PR prend toute la branche.
+- `.whl` = archive ZIP d'un paquet (code + `dist-info`) ; `pip install` la décompresse
+  dans les site-packages (le `.whl` reste tel quel) ; `py3-none-any` = Python pur,
+  compatible partout ; Python trouve le paquet via `sys.path`.
+- Duck typing / programmer contre une interface (faux `Game` interchangeable) ;
+  `@dataclass` (génère `__init__` et `__repr__`) ; `str | None` + valeur par défaut ;
+  `Any` d'un paquet non typé → annoter la variable qui le reçoit ; `set` (test
+  `in` instantané, pas de doublon) ; compréhensions de liste (2 `for` + `if`) ;
+  `random.sample` (sans remise) ; `//` division entière ; seed = hasard reproductible ;
+  **`maze[y][x]`** (liste de lignes : boucle sur `y` puis `x`) ; magic number → constante.
+- Python est sensible à la casse (`Mazegenerator` ≠ `MazeGenerator`).
 
 ## Plan, étape par étape (lié aux cartes Trello jaunes)
 
@@ -324,9 +428,9 @@ choix : sans « retour au menu », on ne pourrait quitter une partie qu'en perda
 | 2b | Premier build de test | PyInstaller sur le mini-programme, tôt | à faire |
 | 3 | Machine à états des écrans | `Screen` + `App.change_screen()`, écrans vides | **fait** (21 oct.) : 7 états (saisie du nom dans `EndScreen`), routage |
 | 4 | Menu principal | Start, Highscores, Instructions, Exit | **fait** (21 oct.) : menu à curseur + écran Instructions complet |
-| 5 | Sprites et rendu du plateau | `assets/` + `BoardView` avec le faux `Game` | à faire |
+| 5 | Sprites et rendu du plateau | `assets/` + `BoardView` avec le faux `Game` | **en cours** : faux `Game` + sprites faits (23 oct.), reste étapes 1 à 3 |
 | 6 | HUD + Menu pause | `draw_hud()`, `PauseScreen` (reprendre / retour au menu) | pause **faite** (22 oct., curseur + partie figée) ; HUD à faire |
-| 7 | Game Over / Victoire + saisie du nom | max 10 caractères, alphanumérique + espaces, effacement | à faire (écrans en version test) |
+| 7 | Game Over / Victoire + saisie du nom | max 10 caractères, alphanumérique + espaces, effacement | **fait** (23 oct.) ; sauvegarde → carte 8 |
 | 8 | Highscores | JSON robuste (absent / corrompu), top 10 trié, affichés dans le menu | à faire |
 | 9 | Packaging final | `pacman.spec`, assets inclus, Itch.io | à faire |
 | — | Intégration | remplacer le stub par le vrai `Game` de Luc | à faire |
@@ -335,12 +439,44 @@ Dates Trello (2026) : rendu final le 7 nov. Sprites 16 oct, machine à états 17
 menu 20 oct, HUD 21 oct, pause 22 oct, fin + saisie 24 oct, premier build 24 oct,
 highscores 27-28 oct, packaging 31 oct.
 
-Prochaine étape : **« Écrans Game Over / Victoire et saisie du nom »** (plan dans
-la section de la carte, à valider), puis 2b (premier build), puis 5 (sprites,
-en retard). Envoyer à Luc la taille de fenêtre / le nombre de cases max.
+Prochaine étape : **carte 5, étape 1** (`BoardView` : murs et couloirs dans
+`GameScreen`), puis étapes 2 et 3, puis **« HUD en jeu »** (même stub), puis 2b
+(premier build). Ouvrir la PR `graphic` → `main` quand je le décide (manip CLAUDE.md).
+Envoyer à Luc la taille de fenêtre / le nombre de cases max.
 À chaque nouvelle carte : annoncer son nom et ses sous-tâches (`pacman.json`) avant de coder.
 
-## Ce que Luc a mis sur `main` (vu le 21 oct., dernier commit `33591a9`, pas encore mergé dans `graphic`)
+## Code de Luc fusionné dans `graphic` (23 oct., `main` = `3818e62`)
+
+Nouveautés depuis le 21 oct. (le détail plus bas reste valable sauf ceci) :
+- `game.py` : `self.score += ...` corrigé ; `result: Literal["victory", "defeat"] | None`
+  (→ remplace mes `is_over` / `is_won`) ; `timer` ; `update(self, time: float)`
+  prend maintenant le temps écoulé (= mon `dt`) mais est encore vide ;
+  `game_end()` : `lives == 0` → `"defeat"`, sinon `"victory"`.
+- `level.py` : grille `self._maze` (privée → il me faudra un accès public), largeur
+  14 à 23 et hauteur 10 à 19 (limites dans `MazeLoader`) → rentre dans 45 × 27.
+- `config.json` : `levels` = liste de `[largeur, hauteur]`, `highscore_filename` =
+  `.highscores.json`, `level_max_time` = 80.
+- `.flake8` : `extend-exclude = .venv` → `flake8 .` ne vérifie pas les bibliothèques
+  installées par `uv` dans `.venv` (sinon des milliers d'erreurs qui ne sont pas à nous).
+- `.highscores.json` : fichier de highscores par défaut (le `.` le cache dans `ls`),
+  format `{"Elhadj": 3000, "Luc": 200}` (données de test). Chargé par `MazeLoader`.
+- `pyproject.toml` : **`pygame` ajouté** aux dépendances ; `mazegenerator` via le `.whl`.
+- Pour lancer `pac-man.py` à l'école (sans venv) : `pip install --user
+  mazegenerator-2.1.0-py3-none-any.whl` (sinon ModuleNotFoundError).
+
+Bugs vus le 23 oct. (à signaler à Luc, pas à corriger moi-même) :
+- `mazeloader.get_values()` : `self.datas[...] = self.get_lives(...)` (idem
+  `get_max_time`, `get_pacgum`) alors que ces méthodes ne renvoient rien →
+  `lives`, `level_max_time`, `pacgum` valent **`None`** (mypy le signale : 3 erreurs
+  `func-returns-value`, donc `make lint` échoue).
+- `get_pacgum` : condition inversée (message d'erreur quand la valeur est valide).
+- `game.eat()` : `points_per_supergum` ≠ clé `points_per_superpacgum` → KeyError.
+- `check_highscores` ne vérifie pas « alphanumérique + espaces » ; format dict = un
+  seul score par nom (deux parties « Luc » s'écrasent).
+- `pac-man.py` : les imports sont hors du `try` → si `mazegenerator` manque,
+  **traceback** (interdit par le sujet).
+
+## Ce que Luc avait mis sur `main` (vu le 21 oct., commit `33591a9`)
 
 Fichiers (`src/logical/`) :
 - `parser.py` : `Parser.check_file(path)` lit le JSON, enlève les `#`, lève `ParsingError`.
@@ -372,18 +508,14 @@ Fichiers (`src/logical/`) :
 Fusion simulée (`git merge-tree`) le 21 oct. : aucun conflit. Je merge quand je le décide.
 
 Points à discuter avec Luc :
-1. **Contrat** : grille publique (`maze`), directions `"N"/"E"/"S"/"W"` (mon `App`
-   utilise `"up"/"down"/...` → choisir), `update(dt)` ou cadence fixe par case,
-   `game.level` = objet `Level` chez lui (le HUD veut le numéro → `current_level + 1`),
-   où passent les touches (`handle_action`) et le cheat mode, `is_over` / `is_won`.
+1. **Contrat** : décidé le 22 oct. (voir « Contrat avec Luc » dans Architecture) ;
+   restent les 4 points à confirmer.
 2. **Déplacement case par case** : `move()` saute d'une case ; décider la vitesse
    (combien de frames par case) et si l'affichage est fluide (interpolation) ou non.
 3. **Pause** : `game.paused` existe chez lui, `PauseScreen` est chez moi → qui décide.
 4. **Highscores** : cartes jaunes (moi) mais chargés par `MazeLoader` → il me passe
    le chemin, je gère `HighscoreTable` ; format liste plutôt que `{nom: score}`.
-5. **Bugs repérés** dans `game.eat()` : `self.score =+ ...` (affecte au lieu
-   d'ajouter, seule erreur flake8 restante) et `f"points_per_{eaten}"` donne
-   `points_per_supergum` alors que la clé est `points_per_superpacgum` → KeyError.
+5. **Bugs repérés** : voir « Bugs vus le 23 oct. » (le `=+` est corrigé).
 6. Temps par niveau 80 ou 90 s ; taille de case / fenêtre : proposer 1440 × 960,
    HUD 80 px, cases 32 px → 45 × 27 cases max (voir « Taille de la fenêtre »).
 7. Touches de triche au pavé numérique ou chiffres du haut du clavier.
@@ -396,6 +528,7 @@ Points à discuter avec Luc :
 - Fantômes et super-pacgums dans les 4 coins. Respawn des fantômes après 5 s.
 - Fantômes : rouge = traque, rose = piège, bleu = aléatoire, orange = timide.
 - Pause / reprise : touche Espace (décision d'Elhadj, 21 oct.).
+- Saisie du nom en fin de partie : facultative (Échap), majuscules avec Maj (23 oct.).
 - Cheat mode : `c` pour activer, puis `1` invincibilité, `2` gel des fantômes,
   `3` vies en plus, `4` vitesse +, `5` niveau suivant.
 
@@ -405,6 +538,13 @@ Sur les PC de l'école : **pas de venv**, pygame / flake8 / mypy sont installés
 avec `pip install --user` (dans `~/.local/lib/python3.13/site-packages/`). Le
 dossier `.venv` qui apparaît dans le projet est vide et inutile. Pour plus tard :
 ajouter `pygame` aux dépendances de `pyproject.toml` (fichier commun, avec Luc).
+
+Générateur de labyrinthe à l'école : `python3 -m pip install --user
+mazegenerator-2.1.0-py3-none-any.whl` (le `pip` seul est celui de Python 3.10,
+alors que `python3` = 3.13 de pyenv ; déjà installé sur ce PC le 23 oct.).
+Lint de ma partie : `flake8 src && mypy src/graphical --strict --ignore-missing-imports`
+(`mypy src` inclut `src/logical/` de Luc, qui a encore des erreurs ; le générateur
+n'est pas typé → `--ignore-missing-imports`, comme `make lint`).
 
 ```bash
 source .venv/bin/activate          # activer le venv (chez moi, pas à l'école)

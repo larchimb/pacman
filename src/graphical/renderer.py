@@ -50,6 +50,8 @@ _SPECIAL_KEYS: dict[int, str] = {
     pygame.K_SPACE: "space",
     pygame.K_RETURN: "return",
     pygame.K_BACKSPACE: "backspace",
+    pygame.K_LSHIFT: "shift",
+    pygame.K_RSHIFT: "shift",
 }
 
 

@@ -1,2 +1,6 @@
 pacman.pdf
+pacman.json
+spike_*.py
 .venv/
+__pycache__/
+.mypy_cache/

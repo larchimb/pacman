@@ -12,14 +12,14 @@ class Level():
         self._height = len(self._maze)
         xpacman = (self._width - 1) // 2
         ypacman = (self._height - 1) // 2
-        self.pacman = PacMan((xpacman, ypacman))
+        self.pacman = PacMan((xpacman, ypacman), 0.15)
         self.supergums = self.supergums_set_up()
         self.pacgums = self.pacgums_set_up(config.datas["pacgum"])
         self.ghosts = [
-            Hunter((0, 0)),
-            Tricky((self._width - 1, 0)),
-            Randomly((self._width - 1, self._height - 1)),
-            Scary((0, self._height - 1))
+            Hunter((0, 0), 0.20),
+            Tricky((self._width - 1, 0), 0.20),
+            Randomly((self._width - 1, self._height - 1), 0.20),
+            Scary((0, self._height - 1), 0.20)
         ]
 
     def get_excluded_cells(self) -> set[tuple[int, int]]:

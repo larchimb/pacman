@@ -3,9 +3,10 @@ class Entity():
     DIRECTIONS = {"N": (0, -1, 1), "E": (1, 0, 2),
                   "S": (0, 1, 4), "W": (-1, 0, 8)}
 
-    def __init__(self, start: tuple[int, int]) -> None:
+    def __init__(self, start: tuple[int, int], step_time: float) -> None:
         self.start = start
         self.pos = start
+        self.step_time = step_time
         self.direction: str | None = None
         self.next_direction: str | None = None
 
@@ -28,17 +29,27 @@ class Entity():
 
 
 class PacMan(Entity):
-    def __init__(self, start: tuple[int, int]) -> None:
-        super().__init__(start)
+    '''Class for Pacman's entity'''
+    KEYS = {"up", "down", "left", "right"}
 
-    def get_next_direction(self) -> None:
+    def __init__(self, start: tuple[int, int], step_time: float) -> None:
+        super().__init__(start, step_time)
+
+    def set_next_direction(self, action: str) -> None:
         '''To find the next direction accordind to the keyboard command'''
-        ...
+        if action == "up":
+            self.next_direction = "N"
+        elif action == "down":
+            self.next_direction = "S"
+        elif action == "left":
+            self.next_direction = "W"
+        elif action == "right":
+            self.next_direction = "E"
 
 
 class Hunter(Entity):
-    def __init__(self, start: tuple[int, int]) -> None:
-        super().__init__(start)
+    def __init__(self, start: tuple[int, int], step_time: float) -> None:
+        super().__init__(start, step_time)
 
     def get_next_direction(self) -> None:
         '''To find the next direction accordind to the keyboard command'''
@@ -46,8 +57,8 @@ class Hunter(Entity):
 
 
 class Tricky(Entity):
-    def __init__(self, start: tuple[int, int]) -> None:
-        super().__init__(start)
+    def __init__(self, start: tuple[int, int], step_time: float) -> None:
+        super().__init__(start, step_time)
 
     def get_next_direction(self) -> None:
         '''To find the next direction accordind to the keyboard command'''
@@ -55,8 +66,8 @@ class Tricky(Entity):
 
 
 class Randomly(Entity):
-    def __init__(self, start: tuple[int, int]) -> None:
-        super().__init__(start)
+    def __init__(self, start: tuple[int, int], step_time: float) -> None:
+        super().__init__(start, step_time)
 
     def get_next_direction(self) -> None:
         '''To find the next direction accordind to the keyboard command'''
@@ -64,8 +75,8 @@ class Randomly(Entity):
 
 
 class Scary(Entity):
-    def __init__(self, start: tuple[int, int]) -> None:
-        super().__init__(start)
+    def __init__(self, start: tuple[int, int], step_time: float) -> None:
+        super().__init__(start, step_time)
 
     def get_next_direction(self) -> None:
         '''To find the next direction accordind to the keyboard command'''

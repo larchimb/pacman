@@ -9,7 +9,7 @@ from typing import Literal
 class Game():
     '''Class with the config and the state of the whole game'''
     cheating_keys = {
-        "cheat", "invincible", "freeze", "life", "speed", "level"
+        "invincible", "freeze", "life", "speed", "level"
         }
 
     def __init__(self, config: MazeLoader) -> None:
@@ -20,8 +20,9 @@ class Game():
         self.lives = config.datas["lives"]
         self.paused = False
         self.result: Literal["victory", "defeat"] | None = None
-        self.set_timer()
+        self.set_level_timer()
         self.cheating_mode = False
+        self.frozen = False
 
     def level_generator(self) -> list[Level]:
         '''Complete all information about the levels from MazeLoader'''
@@ -38,14 +39,14 @@ class Game():
         '''The level currently played'''
         return self.levels[self.current_level]
 
-    def set_timer(self) -> None:
+    def set_level_timer(self) -> None:
         '''Define the starting time for each level'''
-        self.timer = self.config.datas["level_max_time"]
+        self.level_timer = self.config.datas["level_max_time"]
 
-    def update_timer(self, dt: float) -> None:
+    def update_level_timer(self, dt: float) -> None:
         '''Time before the end of the level'''
-        self.timer -= dt
-        if self.timer <= 0:
+        self.level_timer -= dt
+        if self.level_timer <= 0:
             self.game_end()
 
     def eat(self) -> None:
@@ -54,22 +55,47 @@ class Game():
         if eaten:
             self.score += self.config.datas[f"points_per_{eaten}"]
             if self.level.is_cleared():
-                self.next_level()
+                self.pass_level()
 
-    def next_level(self) -> None:
+    def maintain_cheats(self) -> None:
+        '''Report all the cheats on the next pacman'''
+        next_level = self.levels[self.current_level + 1]
+        next_level.pacman.step_time = self.level.pacman.step_time
+        next_level.pacman.invincible = self.level.pacman.invincible
+
+    def pass_level(self) -> None:
         '''Change level and quit if it was the last one'''
         if self.current_level + 1 == len(self.levels):
             self.game_end()
         else:
+            self.maintain_cheats()
             self.current_level += 1
-            self.set_timer()
+            self.set_level_timer()
 
     def game_end(self) -> None:
         '''Register the end of the game'''
-        if self.lives == 0 or self.timer <= 0:
+        if self.lives == 0 or self.level_timer <= 0:
             self.result = "defeat"
         else:
             self.result = "victory"
+
+    def add_life(self) -> None:
+        '''Add a life to Pacman'''
+        if self.lives < 99:
+            self.lives += 1
+
+    def activate_cheat(self, action: str) -> None:
+        '''Activate or deactivate the cheat code choosen'''
+        if action == "invincible":
+            self.level.pacman.invincible = not self.level.pacman.invincible
+        elif action == "freeze":
+            self.frozen = not self.frozen
+        elif action == "life":
+            self.add_life()
+        elif action == "speed":
+            self.level.pacman.cheat_speed()
+        elif action == "level":
+            self.pass_level()
 
     def handle_action(self, action: str) -> None:
         '''Apply an action asked by the player'''
@@ -79,14 +105,13 @@ class Game():
             return
         elif action in PacMan.KEYS:
             self.level.pacman.set_next_direction(action)
-        elif action in self.cheating_keys:
+        elif action == "cheat":
             self.cheating_mode = not self.cheating_mode
         elif action in self.cheating_keys and self.cheating_mode:
-            ...
+            self.activate_cheat(action)
 
     def update(self, dt: float) -> None:
         '''One step of the game'''
         if self.paused or self.result:
             return
-        self.update_timer(dt)
-
+        self.update_level_timer(dt)

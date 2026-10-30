@@ -57,7 +57,7 @@ class PacMan(Entity):
         self.invincible = False
 
     def set_next_direction(self, action: str) -> None:
-        '''To find the next direction accordind to the keyboard command'''
+        '''To find the next direction according to the keyboard command'''
         if action == "up":
             self.next_direction = "N"
         elif action == "down":
@@ -81,21 +81,43 @@ class Ghost(Entity, ABC):
                  start: tuple[int, int], step_time: float) -> None:
         super().__init__(maze, start, step_time)
         self.weak = False
+        self.shortest_path: str | None = None
 
     def possible_directions(self) -> list[str]:
         '''Return all the directions without wall'''
         return [d for d in self.DIRECTIONS if self.can_move(d)]
 
-    def update_pacman_pos(self, pacman: tuple[int, int]) -> None:
-        '''Update pacman position'''
+    def set_pacman(self, pacman: PacMan) -> None:
+        '''Link the ghost to the Pac-Man it reacts to'''
         self.pacman = pacman
+
+    def move(self) -> None:
+        '''Choose the next direction, then move one cell'''
+        self.get_next_direction()
+        super().move()
+
+    def go_to(self, goal: tuple[int, int]) -> None:
+        '''Turn toward the first step of the shortest path to goal'''
+        self.find_shortest_path(goal)
+        if self.shortest_path:
+            self.next_direction = self.shortest_path[0]
+        self.shortest_path = None
 
     @abstractmethod
     def get_next_direction(self) -> None:
         '''To find the next direction depending of the ghost's kind'''
 
-    def get_flew_direction(self) -> None:
-        '''To find the next direction to escape to Pacman'''
+    def get_flee_direction(self) -> None:
+        '''To find the next direction to escape from Pacman'''
+        self.find_shortest_path(self.pacman.pos)
+        if self.shortest_path:
+            toward = self.shortest_path[0]
+            escapes = [d for d in self.possible_directions() if d != toward]
+            if escapes:
+                self.next_direction = escapes[randint(0, len(escapes) - 1)]
+            else:
+                self.next_direction = toward
+        self.shortest_path = None
 
     def respawn(self) -> None:
         '''To change the specificities of the ghost'''
@@ -103,12 +125,13 @@ class Ghost(Entity, ABC):
         self.weak = False
         self.step_time = self.basic_step
 
-    def find_shortest_path(self) -> None:
-        '''Fill the maze with distance to the pacman'''
-        moves = [(0, -1, 1, 'N'), (1, 0, 2, 'E'),
-         (0, 1, 4, 'S'), (-1, 0, 8, 'W')]   # dx, dy, wall code, letter
+    def find_shortest_path(self, goal: tuple[int, int]) -> None:
+        '''Compute the shortest path from the ghost to goal'''
+        moves = [
+            (0, -1, 1, 'N'), (1, 0, 2, 'E'),
+            (0, 1, 4, 'S'), (-1, 0, 8, 'W')
+            ]   # dx, dy, wall code, letter
         start = self.pos
-        goal = self.pacman
         prev: dict = {start: None}
         queue = deque([start])
         while queue:
@@ -129,7 +152,6 @@ class Ghost(Entity, ABC):
             letters.append(letter)
             cur = parent
         self.shortest_path = ''.join(reversed(letters))
-        return
 
 
 class Hunter(Ghost):
@@ -140,11 +162,10 @@ class Hunter(Ghost):
 
     def get_next_direction(self) -> None:
         '''Find a direct way to the pacman'''
-        if not self.weak:
-            self.find_shortest_path()
-            self.next_direction = self.shortest_path[0]
-        else:
-            self.get_flew_direction()
+        if self.weak:
+            self.get_flee_direction()
+            return
+        self.go_to(self.pacman.pos)
 
 
 class Tricky(Ghost):
@@ -154,30 +175,66 @@ class Tricky(Ghost):
         super().__init__(maze, start, step_time)
 
     def get_next_direction(self) -> None:
-        '''Try to find a way to trick Pacman'''
-        ...
+        '''Find the shortest path to Pac-Man's predicted position.'''
+        if self.weak:
+            self.get_flee_direction()
+            return
+        px, py = self.pacman.pos
+        goal = (px, py)
+        direction = self.pacman.direction
+        if direction:
+            dx, dy, _ = self.DIRECTIONS[direction]
+            for i in range(4, 0, -1):
+                x, y = (px + dx * i, py + dy * i)
+                if (0 <= x < len(self.maze[0]) and 0 <= y < len(self.maze)
+                        and self.maze[y][x] != 15) and (x, y) != self.pos:
+                    goal = (x, y)
+                    break
+        self.go_to(goal)
 
 
 class Randomly(Ghost):
     '''The random class define random moves for a ghost'''
+    OPPOSITE = {"N": "S", "S": "N", "E": "W", "W": "E"}
+
     def __init__(self, maze: list[list[int]],
                  start: tuple[int, int], step_time: float) -> None:
         super().__init__(maze, start, step_time)
 
     def get_next_direction(self) -> None:
-        '''Choose randomly a direction'''
-        if not self.weak:
-            directions = self.possible_directions()
-            self.next_direction = directions[randint(0, len(directions) - 1)]
-        else:
-            self.get_flew_direction()
+        '''Choose randomly a direction, without turning back if possible'''
+        if self.weak:
+            self.get_flee_direction()
+            return
+        directions = self.possible_directions()
+        if self.direction:
+            forward = [d for d in directions
+                       if d != self.OPPOSITE[self.direction]]
+            if forward:
+                directions = forward
+        self.next_direction = directions[randint(0, len(directions) - 1)]
+
 
 class Scary(Ghost):
-    '''The scary class is for the ghost who hunt and flew the Pacman'''
+    '''The scary class is for the ghost who hunt and flee the Pacman'''
     def __init__(self, maze: list[list[int]],
                  start: tuple[int, int], step_time: float) -> None:
         super().__init__(maze, start, step_time)
+        self.way_back = False
 
     def get_next_direction(self) -> None:
         '''Try to find Pacman except if it is too close'''
-        ...
+        if self.weak:
+            self.get_flee_direction()
+            return
+        if self.pos == self.start:
+            self.way_back = False
+        if self.way_back:
+            self.go_to(self.start)
+        else:
+            self.find_shortest_path(self.pacman.pos)
+            if self.shortest_path:
+                self.next_direction = self.shortest_path[0]
+            if self.shortest_path and len(self.shortest_path) < 6:
+                self.way_back = True
+            self.shortest_path = None

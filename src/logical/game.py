@@ -58,7 +58,7 @@ class Game():
             self.deactivate_power()
 
     def eat(self) -> None:
-        '''To add points depending of the gum and activate power for supergum'''
+        '''Eat the gum under Pac-Man, score it and apply its effect'''
         eaten = self.level.eat(self.level.pacman.pos)
         if eaten:
             self.score += self.config.datas[f"points_per_{eaten}"]
@@ -70,7 +70,7 @@ class Game():
     def activate_power(self) -> None:
         '''To activate pacman power, slow down the ghosts'''
         self.supertime = True
-        self.supergum_timer = 15
+        self.supergum_timer: float = 12
         for g in self.level.ghosts:
             g.weak = True
             g.step_time = 1.5 * g.basic_step
@@ -111,7 +111,7 @@ class Game():
             self.lives += 1
 
     def lose_life(self) -> None:
-        '''Loose a life to Pacman'''
+        '''Lose a life to Pacman'''
         self.lives -= 1
         if self.lives <= 0:
             self.game_end()
@@ -165,17 +165,18 @@ class Game():
         self.update_level_timer(dt)
         if self.supertime:
             self.update_supergum_timer(dt)
-        pacman = self.level.pacman
-        ghosts = self.level.ghosts
+        level = self.level
+        pacman = level.pacman
+        ghosts = level.ghosts
         prev_pacman = pacman.pos
         prev_ghosts = [g.pos for g in ghosts]
         pacman.tick(dt)
         if not prev_pacman == pacman.pos:
             self.eat()
+            if self.level is not level:
+                return
             self.collision()
         if not self.frozen:
-            for ghost in self.level.ghosts:
-                ghost.update_pacman_pos(pacman.pos)
-                ghost.get_next_direction()
+            for ghost in ghosts:
                 ghost.tick(dt)
                 self.collision()

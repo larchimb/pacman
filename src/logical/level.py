@@ -21,6 +21,8 @@ class Level():
             Randomly(self._maze, (self._width - 1, self._height - 1), 0.75),
             Scary(self._maze, (0, self._height - 1), 0.75)
         ]
+        for ghost in self.ghosts:
+            ghost.set_pacman(self.pacman)
 
     def get_excluded_cells(self) -> set[tuple[int, int]]:
         '''Return the cells where no pacgum can be placed'''

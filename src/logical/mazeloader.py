@@ -64,7 +64,7 @@ class MazeLoader():
             if (not isinstance(value, int)
                or isinstance(value, bool)
                or value < 0):
-                raise ParsingError("the score must be a positiv int")
+                raise ParsingError("the score must be a positive int")
         return datas
 
     @staticmethod
@@ -139,9 +139,7 @@ class MazeLoader():
     def get_pacgum(self, setting: str) -> None:
         '''To check pacgum per level'''
         value = self.raw_data.get(setting)
-        if (isinstance(value, int)
-                and not isinstance(value, bool)
-                and 10 <= value):
+        if not self.is_valid_int(value, 10, 10000):
             print(f"[VALUE ERROR]: '{setting}' isn't good "
                   f"10 <= {setting} , the default one is applied")
         else:
@@ -153,11 +151,11 @@ class MazeLoader():
             if setting == "highscore":
                 self.datas[setting] = self.get_highscores()
             elif setting == "lives":
-                self.datas[setting] = self.get_lives(setting)
+                self.get_lives(setting)
             elif setting == "level_max_time":
-                self.datas[setting] = self.get_max_time(setting)
+                self.get_max_time(setting)
             elif setting == "pacgum":
-                self.datas[setting] = self.get_pacgum(setting)
+                self.get_pacgum(setting)
             elif setting == "levels":
                 self.datas[setting] = self.get_levels()
             else:

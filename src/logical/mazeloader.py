@@ -24,7 +24,7 @@ class MazeLoader():
          "lives": 3,
          "pacgum": 20,
          "points_per_pacgum": 10,
-         "points_per_superpacgum": 50,
+         "points_per_supergum": 50,
          "points_per_ghost": 200,
          "seed": 42,
          "level_max_time": 90

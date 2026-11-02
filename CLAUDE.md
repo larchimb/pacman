@@ -138,8 +138,8 @@ src/graphical/
 │   ├── end.py          EndScreen (FAIT : game over / victoire + félicitations + saisie du nom)
 │   ├── highscores.py   HighscoresScreen (FAIT, version test : texte fixe)
 │   └── instructions.py InstructionsScreen (FAIT : contrôles, règles, triche, carte 4)
-├── fake_game.py        FakeGame : faux Game (mêmes attributs que Luc), temporaire (FAIT, pas committé)
-├── board_view.py       BoardView : murs, pacgums, Pac-Man, fantômes
+├── fake_game.py        FakeGame : faux Game (mêmes attributs que Luc), temporaire (FAIT, committé `d8d83ad`)
+├── board_view.py       BoardView : murs (FAIT, à corriger : murs doublés), pacgums, Pac-Man, fantômes
 └── hud.py              draw_hud() : score, vies, niveau, temps, cheat actif
 src/highscores.py       HighscoreTable : charger / ajouter / top 10 / sauvegarder (JSON)
 assets/                 sprites PNG 32 × 32 (FAIT : 11 sprites arcade, 23 oct.)
@@ -157,8 +157,13 @@ pacman.spec             PyInstaller (à la racine)
 - Méthodes : `get_screen_size()` (static), `new_image`, `new_filled_image`,
   `image_pixel_put`, `load_image` (avec cache), `clear`, `pixel_put`,
   `put_image`, `string_put`, `present`, `poll_events`, `close`.
-- À prévoir (étape 5) : un alias `Image = pygame.Surface` exporté par le
-  renderer, pour typer les images ailleurs sans importer pygame.
+- **Alias `Image = pygame.Surface`** (fait le 29 oct., juste après `import pygame`) :
+  le même objet sous un autre nom, pas une nouvelle classe. Sert à **mypy** : les
+  autres fichiers annotent leurs images (`self._h_wall: Image`) avec
+  `from src.graphical.renderer import Image`, sans importer pygame. C'est notre
+  `void *` de `mlx_new_image`. Les signatures du renderer utilisent `Image` ;
+  `new_image` garde `pygame.Surface((w, h))` pour l'**appel** (création).
+  Reste `self._images: dict[str, pygame.Surface]` (l. ~106) à passer en `Image`.
 
 ## Mon `app.py` (carte 2 le 19 oct., machine à états le 21 oct.)
 
@@ -310,8 +315,9 @@ murs et des couloirs ; Pacgums et super-pacgums ; Sprite du joueur orienté selo
 direction ; Sprites des fantômes : normal / comestible / mangé.
 
 Plan en 4 étapes :
-- **Étape 0 (faite, 23 oct.)** : `src/graphical/fake_game.py` (pas committé : il le
-  sera avec `board_view.py`, qui en dépendra).
+- **Étape 0 (faite, 23 oct.)** : `src/graphical/fake_game.py` (committé depuis l'école,
+  `d8d83ad` ; **`FakeLevel` n'a pas `width` / `height`** → utiliser `len(maze[0])` /
+  `len(maze)` ; `spike_fake_game.py` plante encore sur `level.height`, à corriger).
   - `FakeEntity` (`@dataclass`, non frozen) : `pos: tuple[int, int]` (en **cases**),
     `direction: str | None` (`"N"`/`"E"`/`"S"`/`"W"` comme Luc).
   - `FakeLevel(width, height, seed)` : `maze` = grille du **vrai** `MazeGenerator`
@@ -333,8 +339,35 @@ Plan en 4 étapes :
   programme avec l'aide de l'IA (script non gardé dans le dépôt car il utilise pygame
   hors du renderer) → **à déclarer dans « Resources » du README**. `assets/preview.png`
   = aperçu agrandi, **ne pas committer** (à supprimer).
-- **Étape 1** : `board_view.py`, murs et couloirs (bits N/E/S/W → barres d'image,
-  cases 15 pleines), plateau centré sous le HUD de 80 px, affiché dans `GameScreen`.
+- **Étape 1** (morceaux a, b, c faits le 2 nov., commit `e35a240` « draw walls », dans `main`
+  via la PR #9) : `board_view.py`, murs et couloirs, plateau centré sous le HUD de 80 px.
+  - a. alias `Image` dans le renderer (voir « Mon renderer.py »).
+  - b. constantes `CELL_SIZE = 32`, `WALL_THICKNESS = 4`, `WALL_COLOR = 0x2121DE`,
+    `HUD_HEIGHT = 80`, `NORTH/EAST/SOUTH/WEST = 1/2/4/8`, `CLOSED_CELL = 15` ;
+    `BoardView(renderer)` crée **une seule fois** dans `__init__` 3 images :
+    `_h_wall` (32 × 4), `_v_wall` (4 × 32), `_full_cell` (32 × 32). Pourquoi pas dans
+    `draw` : `new_filled_image` = 1024 `set_at` pour une case, × 60 frames/s.
+  - c. `draw(renderer, maze)` : offsets calculés depuis la taille du labyrinthe
+    (`offset_x = (renderer.width - w*32) // 2`, `offset_y = 80 + (renderer.height - 80
+    - h*32) // 2` → 352 / 216 pour 23 × 19), puis `_draw_cell(renderer, cell, px, py)` :
+    case 15 → `_full_cell` + `return` ; sinon 4 `if` séparés (pas `elif` : une case peut
+    avoir plusieurs murs) ; S et E décalés de `far = CELL_SIZE - WALL_THICKNESS` (28).
+  - Test : `spike_board.py` (fenêtre 1440 × 960, `FakeGame`, `board.draw(renderer,
+    game.level.maze)`, Échap / croix pour quitter). **Rendu vérifié le 2 nov.** :
+    labyrinthe complet, « 42 » plein, bien centré.
+  - ⚠️ **Défaut à corriger (prochaine action)** : murs intérieurs **2× plus épais**
+    (8 px) que le bord (4 px). Chaque mur est partagé par 2 cases et chacune dessine
+    sa barre **dans** sa case → 2 barres côte à côte (E de l'une : colonnes 28-31,
+    W de l'autre : 0-3). Correction choisie (recommandée) : **centrer la barre sur la
+    frontière** avec `half = WALL_THICKNESS // 2` : N en `(px, py - half)`, S en
+    `(px, py + CELL_SIZE - half)`, W en `(px - half, py)`, E en
+    `(px + CELL_SIZE - half, py)` → les barres des 2 voisins se superposent, 4 px
+    partout (le bord dépasse de 2 px à l'extérieur). `far` disparaît. Vérifier ensuite
+    s'il reste un petit cran aux angles. (Alternative simple : `WALL_THICKNESS = 2`,
+    mais le bord ne fait plus que 2 px.)
+  - d. (à faire) afficher le plateau dans `GameScreen` : il ne reçoit le renderer que
+    dans `draw` → proposition : propriété `renderer` dans `App`, `GameScreen` fait
+    `BoardView(app.renderer)` et garde un `FakeGame`.
 - **Étape 2** : pacgums (petit point) et super-pacgums (gros point), générés dans le code.
 - **Étape 3** : Pac-Man orienté (un sprite par direction) et fantômes (couleur par
   index ; état comestible / mangé à ajouter au contrat avec Luc).
@@ -370,6 +403,29 @@ Plan en 4 étapes :
   PR `graphic` → `main` **pas encore ouverte** (pas de `gh` ici : passer par le site).
 - ⚠️ `src/logical/game.py` modifié en local (ligne vide de fin supprimée, sans doute
   par l'éditeur) : fichier de Luc → `git restore src/logical/game.py` ou le prévenir.
+
+### Mise à jour du 2 nov.
+
+- **PR #9 `graphic` → `main` fusionnée** (`bb7b339`) avec « draw walls ». `main` fusionné
+  ensuite dans `graphic` (`c1c6017`) : on a le code récent de Luc (non relu : timer de
+  niveau, vitesse des entités, cheat mode dans `game.py`, classe `Ghost` avec BFS,
+  `27f0f3d` « trouble on the crossing between pacman and ghosts »). Signaler à Luc :
+  `src/logical/game.py:70` W293 (ligne vide avec espaces).
+- `CLAUDE.md` re-suivi après la PR (`2cfbbfa`), manip faite.
+- **Les `spike_*.py` sont maintenant suivis** (choix d'Elhadj, pour ne plus les perdre
+  entre l'école et le Mac) ; `spike_*.py` retiré du `.gitignore`, `.DS_Store` ajouté.
+  ⚠️ **Avant chaque PR** : `git rm --cached CLAUDE.md spike_*.py` + commit + push ;
+  après la fusion : `git add` + commit + push (sinon ils partent dans `main`).
+- Fichiers spike : `spike_app.py` (boucle `App`), `spike_renderer.py` (carré bleu +
+  texte), `spike_board.py` (plateau), `spike_fake_game.py` (plateau en texte).
+- Incident réglé : branche **divergée** (« devant 1, derrière 3 ») car commits faits à
+  l'école et sur le Mac sans synchroniser → push refusé, conflit « ajout/ajout » sur
+  `fake_game.py` (créé des deux côtés). Résolu par `git merge origin/graphic` +
+  `git checkout --theirs` (garder la version de l'école) + commit. **Pour l'éviter :
+  toujours `git pull` en arrivant et `git push` en partant.**
+- Mac : `.venv` = Python 3.14 + `pygame-ce` 2.5.8 ; `mazegenerator` installé dans le
+  `.venv` le 25 oct. Lancer avec `.venv/bin/python spike_board.py`.
+- Racine : `assets/IMG_1676.png` (photo non suivie, sans rapport) à supprimer ou déplacer.
 
 ## Notions vues (pour la soutenance)
 
@@ -418,6 +474,21 @@ Plan en 4 étapes :
   `random.sample` (sans remise) ; `//` division entière ; seed = hasard reproductible ;
   **`maze[y][x]`** (liste de lignes : boucle sur `y` puis `x`) ; magic number → constante.
 - Python est sensible à la casse (`Mazegenerator` ≠ `MazeGenerator`).
+- **Bits des murs en binaire** : chaque mur a **sa position** (pas « le dernier bit ») :
+  `W S E N` = `8 4 2 1`. 9 = `1001` → W + N ; 6 = `0110` → S + E (piège vu : 0100 = 4) ;
+  15 = `1111`. Décomposer en 8 / 4 / 2 / 1. `cell & bit` = masque qui ne garde qu'une
+  position ; le résultat vaut `bit` ou 0, et tout nombre ≠ 0 est vrai dans un `if`.
+- **Cases → pixels** : `px = offset_x + x * CELL_SIZE`, `py = offset_y + y * CELL_SIZE` ;
+  pixels comptés depuis 0 (une case va de 0 à 31) ; `put_image(x, y)` = coin
+  haut-gauche ; barre de 4 px qui finit en 31 → commence en 28 (`32 - 4`).
+- Alias de type (`Image = pygame.Surface`) : un autre nom, rien ne change à l'exécution.
+- Préparer une fois ce qui ne change pas (`__init__`), la boucle ne fait que dessiner.
+- **Indentation = blocs** (les `{ }` du C) : `def` à 8 espaces dans une classe = fonction
+  locale de la méthode précédente ; corps pas plus indenté que le `def` →
+  `IndentationError`. `Maj + Tab` dans VS Code enlève un niveau.
+- Git : branche **divergée** (devant N, derrière M) → push refusé ; conflit
+  « ajout/ajout » ; pendant un merge, `ours` = ma branche, `theirs` = celle qu'on
+  fusionne (`git checkout --theirs fichier`).
 
 ## Plan, étape par étape (lié aux cartes Trello jaunes)
 
@@ -428,7 +499,7 @@ Plan en 4 étapes :
 | 2b | Premier build de test | PyInstaller sur le mini-programme, tôt | à faire |
 | 3 | Machine à états des écrans | `Screen` + `App.change_screen()`, écrans vides | **fait** (21 oct.) : 7 états (saisie du nom dans `EndScreen`), routage |
 | 4 | Menu principal | Start, Highscores, Instructions, Exit | **fait** (21 oct.) : menu à curseur + écran Instructions complet |
-| 5 | Sprites et rendu du plateau | `assets/` + `BoardView` avec le faux `Game` | **en cours** : faux `Game` + sprites faits (23 oct.), reste étapes 1 à 3 |
+| 5 | Sprites et rendu du plateau | `assets/` + `BoardView` avec le faux `Game` | **en cours** : faux `Game` + sprites (23 oct.), murs dessinés (2 nov., à corriger : murs doublés) ; reste étape 1d, étapes 2 et 3 |
 | 6 | HUD + Menu pause | `draw_hud()`, `PauseScreen` (reprendre / retour au menu) | pause **faite** (22 oct., curseur + partie figée) ; HUD à faire |
 | 7 | Game Over / Victoire + saisie du nom | max 10 caractères, alphanumérique + espaces, effacement | **fait** (23 oct.) ; sauvegarde → carte 8 |
 | 8 | Highscores | JSON robuste (absent / corrompu), top 10 trié, affichés dans le menu | à faire |
@@ -439,9 +510,13 @@ Dates Trello (2026) : rendu final le 7 nov. Sprites 16 oct, machine à états 17
 menu 20 oct, HUD 21 oct, pause 22 oct, fin + saisie 24 oct, premier build 24 oct,
 highscores 27-28 oct, packaging 31 oct.
 
-Prochaine étape : **carte 5, étape 1** (`BoardView` : murs et couloirs dans
-`GameScreen`), puis étapes 2 et 3, puis **« HUD en jeu »** (même stub), puis 2b
-(premier build). Ouvrir la PR `graphic` → `main` quand je le décide (manip CLAUDE.md).
+Prochaine étape (2 nov.) : **corriger les murs doublés** dans `_draw_cell` (barres
+centrées sur la frontière, voir carte 5 étape 1), revérifier avec `spike_board.py`,
+puis **étape 1d** (plateau dans `GameScreen`), puis étapes 2 et 3, puis **« HUD en
+jeu »** (même stub), puis 2b (premier build). Question en suspens posée à Elhadj :
+avec la version centrée, à quel x se pose le mur E de la case (3, 2) (coin en
+(448, 280)) ? (lui faire refaire le calcul en 3 étapes).
+Ouvrir la PR `graphic` → `main` quand je le décide (manip CLAUDE.md + spikes).
 Envoyer à Luc la taille de fenêtre / le nombre de cases max.
 À chaque nouvelle carte : annoncer son nom et ses sous-tâches (`pacman.json`) avant de coder.
 

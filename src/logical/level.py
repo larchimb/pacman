@@ -6,8 +6,11 @@ import random
 
 class Level():
     '''Class with all informations for a level'''
-    def __init__(self, config: MazeLoader, maze: MazeGenerator) -> None:
+    def __init__(self, config: MazeLoader,
+                 maze: MazeGenerator,
+                 ran_gen: random.Random) -> None:
         self._maze: list[list[int]] = maze.maze
+        self._rng = ran_gen
         self._width = len(self._maze[0])
         self._height = len(self._maze)
         xpacman = (self._width - 1) // 2
@@ -42,7 +45,7 @@ class Level():
                       for x in range(self._width)
                       if (x, y) not in excluded]
         nb_pacgums = min(nb_pacgums, len(free_cells))
-        return set(random.sample(free_cells, nb_pacgums))
+        return set(self._rng.sample(free_cells, nb_pacgums))
 
     def supergums_set_up(self) -> set[tuple[int, int]]:
         '''To set up supergums starts'''

@@ -82,6 +82,7 @@ class Ghost(Entity, ABC):
         super().__init__(maze, start, step_time)
         self.weak = False
         self.shortest_path: str | None = None
+        self.waiting_time: float = 0
 
     def possible_directions(self) -> list[str]:
         '''Return all the directions without wall'''
@@ -95,6 +96,13 @@ class Ghost(Entity, ABC):
         '''Choose the next direction, then move one cell'''
         self.get_next_direction()
         super().move()
+
+    def tick(self, dt: float) -> None:
+        '''Check if the ghost was waiting for respawn before moving'''
+        if self.waiting_time > 0:
+            self.waiting_time -= dt
+            return
+        super().tick(dt)
 
     def go_to(self, goal: tuple[int, int]) -> None:
         '''Turn toward the first step of the shortest path to goal'''
@@ -124,6 +132,7 @@ class Ghost(Entity, ABC):
         super().respawn()
         self.weak = False
         self.step_time = self.basic_step
+        self.waiting_time = 0
 
     def find_shortest_path(self, goal: tuple[int, int]) -> None:
         '''Compute the shortest path from the ghost to goal'''
@@ -156,9 +165,6 @@ class Ghost(Entity, ABC):
 
 class Hunter(Ghost):
     '''The hunter's class for hunting the pacman'''
-    def __init__(self, maze: list[list[int]],
-                 start: tuple[int, int], step_time: float) -> None:
-        super().__init__(maze, start, step_time)
 
     def get_next_direction(self) -> None:
         '''Find a direct way to the pacman'''
@@ -170,9 +176,6 @@ class Hunter(Ghost):
 
 class Tricky(Ghost):
     '''The tricky class for tricking the pacman'''
-    def __init__(self, maze: list[list[int]],
-                 start: tuple[int, int], step_time: float) -> None:
-        super().__init__(maze, start, step_time)
 
     def get_next_direction(self) -> None:
         '''Find the shortest path to Pac-Man's predicted position.'''
@@ -196,10 +199,6 @@ class Tricky(Ghost):
 class Randomly(Ghost):
     '''The random class define random moves for a ghost'''
     OPPOSITE = {"N": "S", "S": "N", "E": "W", "W": "E"}
-
-    def __init__(self, maze: list[list[int]],
-                 start: tuple[int, int], step_time: float) -> None:
-        super().__init__(maze, start, step_time)
 
     def get_next_direction(self) -> None:
         '''Choose randomly a direction, without turning back if possible'''

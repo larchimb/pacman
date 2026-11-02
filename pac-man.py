@@ -9,8 +9,7 @@ def main() -> None:
     av = sys.argv
     if not len(av) == 2:
         raise Exception("[ERROR]: You must have 1 argument for this programm")
-    parser = Parser()
-    config = MazeLoader(parser.check_file(av[1]))
+    config = MazeLoader(Parser.check_file(av[1]))
     Game(config)
 
 

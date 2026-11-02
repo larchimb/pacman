@@ -4,6 +4,7 @@ from .entities import PacMan
 from mazegenerator import MazeGenerator
 import random
 from typing import Literal
+import json
 
 
 class Game():
@@ -14,6 +15,7 @@ class Game():
 
     def __init__(self, config: MazeLoader) -> None:
         self.config = config
+        self.rng = random.Random()
         self.levels = self.level_generator()
         self.current_level = 0
         self.score = 0
@@ -26,14 +28,31 @@ class Game():
         self.supertime = False
         self.max_life = 99
 
+    def generate_maze(self, size: tuple[int, int],
+                      seed: int, level: int) -> MazeGenerator:
+        '''Generate a valid maze, retrying once with another seed'''
+        for _ in range(2):
+            try:
+                maze = MazeGenerator(size, perfect=False, seed=seed)
+                if (len(maze.maze) == size[1]
+                        and all(len(row) == size[0] for row in maze.maze)):
+                    return maze
+                print(f"[GENERATOR ERROR]: level {level}, wrong maze size")
+            except Exception as e:
+                print(f"[GENERATOR ERROR]: level {level}, {e}")
+            seed = self.rng.randint(1, 100000)
+        raise RuntimeError(
+            f"[GENERATOR ERROR]: unable to generate the maze of level {level}")
+
     def level_generator(self) -> list[Level]:
         '''Complete all information about the levels from MazeLoader'''
         levels: list[Level] = []
         for i, (x, y) in enumerate(self.config.datas["levels"], start=1):
             seed = (self.config.datas["seed"] if i == 1
-                    else random.randint(0, 1000))
+                    else self.rng.randint(1, 100000))
             levels.append(Level(self.config,
-                                MazeGenerator((x, y), seed=seed)))
+                                self.generate_maze((x, y), seed, i),
+                                self.rng))
         return levels
 
     @property
@@ -146,9 +165,12 @@ class Game():
         '''To deal with collision between Pacman and a ghost'''
         for g in self.level.ghosts:
             if self.level.pacman.pos == g.pos:
-                if g.weak:
+                if g.waiting_time > 0:
+                    continue
+                elif g.weak:
                     self.score += self.config.datas["points_per_ghost"]
                     g.respawn()
+                    g.waiting_time = 5.0
                 elif self.level.pacman.invincible:
                     continue
                 else:
@@ -169,14 +191,31 @@ class Game():
         pacman = level.pacman
         ghosts = level.ghosts
         prev_pacman = pacman.pos
-        prev_ghosts = [g.pos for g in ghosts]
         pacman.tick(dt)
         if not prev_pacman == pacman.pos:
             self.eat()
             if self.level is not level:
                 return
-            self.collision()
+        self.collision()
         if not self.frozen:
             for ghost in ghosts:
                 ghost.tick(dt)
                 self.collision()
+
+    def save_score(self, name: str) -> bool:
+        '''Add the score to the highscores and save the top 10'''
+        name = name.strip()
+        if not MazeLoader.is_valid_entry(name, self.score):
+            return False
+        highscores = self.config.datas["highscore"]
+        highscores.append({"name": name, "score": self.score})
+        self.config.datas["highscore"] = MazeLoader.top_ten(highscores)
+        path = self.config.path_to_highscore
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump({"highscores": self.config.datas["highscore"]},
+                          f, indent=2)
+        except OSError as e:
+            print(f"[SAVE ERROR]: cannot write '{path}': {e}")
+            return False
+        return True

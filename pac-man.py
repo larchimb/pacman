@@ -1,4 +1,4 @@
-from src.logical.parser import Parser, ParsingError
+from src.logical.parser import Parser
 from src.logical.mazeloader import MazeLoader
 from src.logical.game import Game
 import sys
@@ -17,5 +17,5 @@ def main() -> None:
 if __name__ == "__main__":
     try:
         main()
-    except (ParsingError, Exception, KeyboardInterrupt) as e:
+    except (Exception, KeyboardInterrupt) as e:
         print(e)

@@ -3,7 +3,7 @@
 from src.graphical.renderer import Image, Renderer
 
 # Size of one cell in pixels (same as the sprites in assets/).
-CELL_SIZE: int = 32
+CELL_SIZE: int = 44
 # Thickness of a wall bar in pixels.
 WALL_THICKNESS: int = 4
 # Arcade blue.
@@ -27,10 +27,10 @@ class BoardView:
         """Create the wall images once (creating them is slow)."""
         # Horizontal bar for N and S walls, vertical bar for W and E.
         self._h_wall: Image = renderer.new_filled_image(
-            CELL_SIZE, WALL_THICKNESS, WALL_COLOR
+            CELL_SIZE + WALL_THICKNESS, WALL_THICKNESS, WALL_COLOR
         )
         self._v_wall: Image = renderer.new_filled_image(
-            WALL_THICKNESS, CELL_SIZE, WALL_COLOR
+            WALL_THICKNESS, CELL_SIZE + WALL_THICKNESS, WALL_COLOR
         )
         # A full cell for the "42" logo.
         self._full_cell: Image = renderer.new_filled_image(
@@ -61,14 +61,19 @@ class BoardView:
         if cell == CLOSED_CELL:
             renderer.put_image(self._full_cell, px, py)
             return
-        # S and E bars must end on the last pixel of the cell (31),
-        # so they start WALL_THICKNESS pixels before its end.
-        far = CELL_SIZE - WALL_THICKNESS
+        # A wall is shared by 2 cells: each bar is centered on the border
+        # (half inside, half outside), so both cells draw it at the same
+        # place and it stays WALL_THICKNESS thick.
+        half = WALL_THICKNESS // 2
         if cell & NORTH:
-            renderer.put_image(self._h_wall, px, py)
+            renderer.put_image(self._h_wall, px - half, py - half)
         if cell & SOUTH:
-            renderer.put_image(self._h_wall, px, py + far)
+            renderer.put_image(
+                self._h_wall, px - half, py + CELL_SIZE - half
+            )
         if cell & WEST:
-            renderer.put_image(self._v_wall, px, py)
+            renderer.put_image(self._v_wall, px - half, py - half)
         if cell & EAST:
-            renderer.put_image(self._v_wall, px + far, py)
+            renderer.put_image(
+                self._v_wall, px + CELL_SIZE - half, py - half
+            )

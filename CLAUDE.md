@@ -96,32 +96,58 @@ game.update(dt: float)            # graphisme → logique : avancer de dt second
 ```
 Tout le reste = **lecture d'attributs** dans mes `draw` (je ne modifie jamais `Game`) :
 `game.score`, `game.lives`, `game.current_level` (+ 1 pour l'affichage),
-`game.timer`, `game.result` (`"victory"` / `"defeat"` / `None`), `game.level`
-(objet `Level` : grille, `pacman.pos` / `pacman.direction`, `ghosts`, `pacgums`,
-`supergums`).
+`game.level_timer` (temps restant du niveau ; **pas** `timer`), `game.result`
+(`"victory"` / `"defeat"` / `None`), `game.level` (objet `Level` : grille `_maze`,
+`pacman.pos` / `pacman.direction` (`None` au départ), `ghosts` (chacun a `weak`
+= comestible), `pacgums`, `supergums`).
 
-Chaînes d'action (à copier **exactement**, une faute = action ignorée sans erreur) :
+Chaînes d'action (à copier **exactement**, une faute = action ignorée sans erreur),
+vérifiées dans le code de Luc le 2 nov. :
 
 | Touche | Action | Source |
 |---|---|---|
-| Espace | `"pause"` | `game.py` (inverse `game.paused`) |
-| `c` | `"cheat"` | text.txt |
-| `1` / `2` / `3` / `4` / `5` | `"invinsible"` / `"freeze"` / `"life"` / `"speed"` / `"level"` | Luc, 22 oct. |
-| flèches / WASD | **à confirmer** (`"N"`/`"E"`/`"S"`/`"W"` comme `Entity.DIRECTIONS` ?) | — |
+| Espace | `"pause"` (on ne l'envoie pas, voir point 3) | `game.py` (inverse `game.paused`) |
+| `c` | `"cheat"` | `game.py` |
+| `1` / `2` / `3` / `4` / `5` | `"invincible"` / `"freeze"` / `"life"` / `"speed"` / `"level"` | `Game.cheating_keys` |
+| flèches / WASD | `"up"` / `"down"` / `"left"` / `"right"` | `PacMan.KEYS` → `set_next_direction` |
 
-À confirmer avec Luc :
-1. Les chaînes des directions (mon `DIRECTION_KEYS` envoie `"up"`/`"down"`… → changer les valeurs).
-2. L'orthographe `"invinsible"` (anglais : `invincible`) : choisir et copier à l'identique.
+Points avec Luc :
+1. ~~Chaînes des directions~~ : **réglé**, `PacMan.KEYS` = `"up"`… = les valeurs de
+   mon `DIRECTION_KEYS`.
+2. ~~Orthographe~~ : **réglé**, Luc écrit `"invincible"`.
 3. Pause : je propose de **ne pas** envoyer `"pause"` (mon `PauseScreen` n'appelle
    plus `update`, ça suffit). Si on l'envoie, il faut le renvoyer en reprenant,
    sinon `game.paused` reste `True`.
 4. Accès public à la grille (propriété `maze` dans `Level`, au lieu de lire `_maze`).
 
+### Branchement logique ↔ graphisme (conçu le 2 nov., **mis de côté** : plateau d'abord)
+
+Le vrai `Game` marche maintenant seul : `Game(MazeLoader(Parser().check_file(
+"config.json")))` se crée sans erreur (testé le 2 nov., niveau 1 = 14 × 10, Pac-Man
+en (6, 4), 50 pacgums). **Le `FakeGame` n'est plus utilisé** (décision d'Elhadj) :
+`spike_board.py` lit le vrai `game.level`.
+
+Plan prévu (code déjà expliqué, à écrire plus tard) :
+- `pac-man.py` (commun, prévenir Luc) : imports **dans `main()`** (sinon module
+  manquant = traceback), puis `App(1440, 960, "Pac-Man", config).run()`.
+- `App(width, height, title, config)` garde `self._config` ; propriété `renderer`
+  (pour `BoardView(app.renderer)`) ; `start_game()` = `GameScreen(self,
+  Game(self._config))` → **nouvelle partie = nouvel objet `Game`**.
+- `GameScreen(app, game)` : `handle_event` → `game.handle_action(ACTION_KEYS[key])`
+  (dict touche → chaîne : flèches/WASD + `c` + `1`-`5`) ; `update(dt)` →
+  `game.update(dt)` puis si `game.result is not None` → `app.end_game(result ==
+  "victory", score)` (fin des touches G / V) ; `draw` = **lire seulement**
+  (`BoardView` + HUD texte). `Game` importé sous `TYPE_CHECKING` (annotation seule).
+- Erreurs vues dans le 1er essai d'Elhadj (annulé par `git restore`) : `def update():`
+  sans `self` / `dt` ni corps ; `self.draw()` dans `__init__` (pas de renderer, et
+  c'est `App` qui dessine) ; `handle_action(action)` envoyé pour toutes les touches
+  avec `action = ""` (directions jamais envoyées). Notion : on **passe** une `str` en
+  paramètre, nos méthodes restent `-> None` (rien n'est renvoyé).
+
 Forces : interface étroite, sens unique (actions + temps → logique ; état → dessin).
 Faiblesses : chaînes non vérifiées par mypy ; dépendance aux noms d'attributs de Luc.
 
-En attendant que le vrai `Game` marche, je travaille avec un faux `Game` (stub) qui
-imite ces attributs (le vrai plante pour l'instant : `pacgum` = `None`, voir bugs).
+Depuis le 2 nov., le vrai `Game` marche : le faux `Game` (stub) n'est plus utilisé.
 
 Mes fichiers prévus :
 ```
@@ -138,8 +164,8 @@ src/graphical/
 │   ├── end.py          EndScreen (FAIT : game over / victoire + félicitations + saisie du nom)
 │   ├── highscores.py   HighscoresScreen (FAIT, version test : texte fixe)
 │   └── instructions.py InstructionsScreen (FAIT : contrôles, règles, triche, carte 4)
-├── fake_game.py        FakeGame : faux Game (mêmes attributs que Luc), temporaire (FAIT, committé `d8d83ad`)
-├── board_view.py       BoardView : murs (FAIT, à corriger : murs doublés), pacgums, Pac-Man, fantômes
+├── fake_game.py        FakeGame : faux Game, ABANDONNÉ le 2 nov. (le vrai marche)
+├── board_view.py       BoardView : murs (FAIT, corrigés le 2 nov.), pacgums, Pac-Man, fantômes
 └── hud.py              draw_hud() : score, vies, niveau, temps, cheat actif
 src/highscores.py       HighscoreTable : charger / ajouter / top 10 / sauvegarder (JSON)
 assets/                 sprites PNG 32 × 32 (FAIT : 11 sprites arcade, 23 oct.)
@@ -355,22 +381,46 @@ Plan en 4 étapes :
   - Test : `spike_board.py` (fenêtre 1440 × 960, `FakeGame`, `board.draw(renderer,
     game.level.maze)`, Échap / croix pour quitter). **Rendu vérifié le 2 nov.** :
     labyrinthe complet, « 42 » plein, bien centré.
-  - ⚠️ **Défaut à corriger (prochaine action)** : murs intérieurs **2× plus épais**
-    (8 px) que le bord (4 px). Chaque mur est partagé par 2 cases et chacune dessine
-    sa barre **dans** sa case → 2 barres côte à côte (E de l'une : colonnes 28-31,
-    W de l'autre : 0-3). Correction choisie (recommandée) : **centrer la barre sur la
-    frontière** avec `half = WALL_THICKNESS // 2` : N en `(px, py - half)`, S en
-    `(px, py + CELL_SIZE - half)`, W en `(px - half, py)`, E en
-    `(px + CELL_SIZE - half, py)` → les barres des 2 voisins se superposent, 4 px
-    partout (le bord dépasse de 2 px à l'extérieur). `far` disparaît. Vérifier ensuite
-    s'il reste un petit cran aux angles. (Alternative simple : `WALL_THICKNESS = 2`,
-    mais le bord ne fait plus que 2 px.)
-  - d. (à faire) afficher le plateau dans `GameScreen` : il ne reçoit le renderer que
-    dans `draw` → proposition : propriété `renderer` dans `App`, `GameScreen` fait
-    `BoardView(app.renderer)` et garde un `FakeGame`.
-- **Étape 2** : pacgums (petit point) et super-pacgums (gros point), générés dans le code.
-- **Étape 3** : Pac-Man orienté (un sprite par direction) et fantômes (couleur par
-  index ; état comestible / mangé à ajouter au contrat avec Luc).
+  - ✅ **Étape A, murs doublés corrigés (2 nov., pas encore committé)**. Le défaut :
+    murs intérieurs 8 px (chaque case dessinait sa barre **dans** sa case → 2 barres
+    côte à côte) contre 4 px au bord. Correction : **barre centrée sur la frontière**,
+    `half = WALL_THICKNESS // 2` ; N en `(px - half, py - half)`, S en `(px - half,
+    py + CELL_SIZE - half)`, W en `(px - half, py - half)`, E en `(px + CELL_SIZE -
+    half, py - half)` → les 2 voisins posent leur barre au même endroit, 4 px partout
+    (le bord dépasse de 2 px dehors). `far` a disparu. **Angles** : barres rallongées
+    de `WALL_THICKNESS` (`_h_wall` = `(CELL_SIZE + 4) × 4`, `_v_wall` = `4 × (CELL_SIZE
+    + 4)`) pour boucher le cran 2 × 2 dans les coins.
+  - **`CELL_SIZE = 44`** (changé par Elhadj le 2 nov., car le labyrinthe paraissait trop
+    petit sur l'écran de l'école). Max 46 px (`880 // 19`) pour que le niveau 10
+    (23 × 19) rentre : 23 × 44 = 1012, 19 × 44 = 836 ≤ 880. Labyrinthe max avec 44 :
+    `1440 // 44` = 32 × `880 // 44` = 20 cases. ⚠️ Les **sprites font encore 32 × 32**
+    → à refaire en 44 × 44 (pas de `transform.scale`) ; le commentaire « same as the
+    sprites in assets/ » au-dessus de `CELL_SIZE` est faux tant qu'ils ne sont pas refaits.
+  - **`spike_board.py` réécrit le 2 nov.** (il n'avait jamais été committé) : **vrai
+    `Game`** (`Game(MazeLoader(Parser().check_file("config.json")))`, sans `App`),
+    `board.draw(renderer, game.level._maze)`, touche **`N`** = `game.pass_level()`
+    (test : voir toutes les tailles de 14 × 10 à 23 × 19 centrées). Erreur vue : en
+    changeant les imports, la boucle `while`, `clear`, `present`, `sleep`, `close`
+    avaient disparu → la fenêtre s'ouvre et se ferme (ou reste noire sans `present`).
+  - d. (mis de côté) afficher le plateau dans `GameScreen` : voir « Branchement
+    logique ↔ graphisme » dans Architecture.
+- **Étape B (expliquée le 2 nov., pas encore écrite)** : pacgums et super-pacgums.
+  - Constantes `PACGUM_SIZE = 6`, `SUPERGUM_SIZE = 16`, `GUM_COLOR = 0xFFB8AE`.
+  - `@staticmethod _new_dot(renderer, size)` : disque **pixel par pixel**
+    (`draw.circle` interdit) : `(x - c)² + (y - c)² <= r²` avec `c = (size - 1) / 2`,
+    `r = size / 2` → `image_pixel_put`. Créé une fois dans `__init__`.
+  - `draw(renderer, level: "Level")` (le `Level` entier, importé sous `TYPE_CHECKING`)
+    : offsets rangés dans `self._offset_x / _offset_y`, `_cell_pixel(pos)` (case →
+    pixel haut-gauche), `_put_centered(renderer, image, size, pos)` (marge `(CELL_SIZE
+    - size) // 2`, resservira pour les sprites). Gums dessinées **après** les murs
+    (calques). Spike : `board.draw(renderer, game.level)`.
+  - Question posée : le fond noir d'une super-pacgum peut-il effacer un mur ?
+- **Étape C** : Pac-Man orienté (`pacman_*.png` selon `pacman.direction` :
+  `"N"`/`"E"`/`"S"`/`"W"`, `None` au départ → un sprite par défaut).
+- **Étape D** : fantômes (couleur par index 0-3 ; `ghost.weak` → `ghost_edible.png` ;
+  état « mangé » à voir avec Luc).
+- `fake_game.py` / `spike_fake_game.py` : **abandonnés** (le vrai `Game` marche).
+  `spike_fake_game.py` plante toujours sur `level.height` ; à supprimer un jour.
 
 ## Taille de la fenêtre et du texte (décidé le 21 oct.)
 
@@ -385,6 +435,10 @@ Plan en 4 étapes :
   cases de 32 px → **labyrinthe de 45 × 27 cases maximum** (cases max = plateau
   ÷ taille de case, division entière). Son plus grand niveau (23 × 19) rentre.
 - La taille de case (32 px) fixe la taille des sprites (carte 5) : un sprite = une taille.
+- **2 nov. : l'écran qui compte = les machines de l'école** (évaluation), pas le Mac
+  perso d'Elhadj. Le niveau 1 (14 × 10) ne faisait que 448 × 320 px avec des cases de
+  32 → `CELL_SIZE` passé à **44** (voir carte 5) ; les sprites restent à refaire.
+  Avec 44 px : labyrinthe de **32 × 20 cases maximum** (à redire à Luc).
 
 ## Git : fichiers suivis et PR (23 oct.)
 
@@ -426,6 +480,19 @@ Plan en 4 étapes :
 - Mac : `.venv` = Python 3.14 + `pygame-ce` 2.5.8 ; `mazegenerator` installé dans le
   `.venv` le 25 oct. Lancer avec `.venv/bin/python spike_board.py`.
 - Racine : `assets/IMG_1676.png` (photo non suivie, sans rapport) à supprimer ou déplacer.
+
+### Mise à jour du 2 nov. (soir, école)
+
+- **PR #10 de Luc (`logic` → `main`) fusionnée** et `main` fusionné dans `graphic`
+  (`a35ce50`) : `81605d5` « save_score, check of mazegenerator » (`Game.save_score`,
+  écrit le fichier de highscores, `try/except OSError`). Le vrai `Game` se crée
+  maintenant sans erreur.
+- Lint : `flake8 src` → une seule erreur, chez Luc : `src/logical/game.py:221` W292
+  (pas de saut de ligne final ; l'éditeur d'Elhadj l'ajoute tout seul → `git restore`
+  plutôt que committer dans un fichier de Luc). Mon `mypy --strict` sur
+  `src/graphical` : aucune erreur.
+- `spike_board.py` **n'avait jamais été committé** (le commit `424c8c2` « spike test for
+  board » ne contenait que `spike_renderer.py`) → réécrit et à ajouter (`git add`).
 
 ## Notions vues (pour la soutenance)
 
@@ -489,6 +556,14 @@ Plan en 4 étapes :
 - Git : branche **divergée** (devant N, derrière M) → push refusé ; conflit
   « ajout/ajout » ; pendant un merge, `ours` = ma branche, `theirs` = celle qu'on
   fusionne (`git checkout --theirs fichier`).
+- **Murs partagés** : un mur appartient à 2 cases → le centrer sur la frontière pour
+  que les deux le posent au même endroit ; rallonger les barres pour boucher les angles.
+- **Boucle d'un programme graphique** : avant = créer, `while` = événements → `clear`
+  → dessiner → `present` → `sleep`, après = `close`. Sans `while` la fenêtre se
+  ferme aussitôt, sans `present` elle reste noire (double buffering).
+- **Paramètre ≠ retour** : on *passe* une `str` à `handle_action(action)` ; nos
+  méthodes restent `-> None`. Taille de case max = `place // nombre de cases`
+  (la dimension la plus serrée décide : `880 // 19 = 46`).
 
 ## Plan, étape par étape (lié aux cartes Trello jaunes)
 
@@ -499,23 +574,28 @@ Plan en 4 étapes :
 | 2b | Premier build de test | PyInstaller sur le mini-programme, tôt | à faire |
 | 3 | Machine à états des écrans | `Screen` + `App.change_screen()`, écrans vides | **fait** (21 oct.) : 7 états (saisie du nom dans `EndScreen`), routage |
 | 4 | Menu principal | Start, Highscores, Instructions, Exit | **fait** (21 oct.) : menu à curseur + écran Instructions complet |
-| 5 | Sprites et rendu du plateau | `assets/` + `BoardView` avec le faux `Game` | **en cours** : faux `Game` + sprites (23 oct.), murs dessinés (2 nov., à corriger : murs doublés) ; reste étape 1d, étapes 2 et 3 |
+| 5 | Sprites et rendu du plateau | `assets/` + `BoardView` avec le vrai `Game` | **en cours** : sprites 32 px (23 oct., à refaire en 44), murs corrigés + `CELL_SIZE = 44` (2 nov.) ; reste étapes B (gums), C (Pac-Man), D (fantômes) |
 | 6 | HUD + Menu pause | `draw_hud()`, `PauseScreen` (reprendre / retour au menu) | pause **faite** (22 oct., curseur + partie figée) ; HUD à faire |
 | 7 | Game Over / Victoire + saisie du nom | max 10 caractères, alphanumérique + espaces, effacement | **fait** (23 oct.) ; sauvegarde → carte 8 |
 | 8 | Highscores | JSON robuste (absent / corrompu), top 10 trié, affichés dans le menu | à faire |
 | 9 | Packaging final | `pacman.spec`, assets inclus, Itch.io | à faire |
-| — | Intégration | remplacer le stub par le vrai `Game` de Luc | à faire |
+| — | Intégration | brancher le vrai `Game` dans `App` / `GameScreen` | conçue le 2 nov. (voir Architecture), mise de côté |
 
 Dates Trello (2026) : rendu final le 7 nov. Sprites 16 oct, machine à états 17 oct,
 menu 20 oct, HUD 21 oct, pause 22 oct, fin + saisie 24 oct, premier build 24 oct,
 highscores 27-28 oct, packaging 31 oct.
 
-Prochaine étape (2 nov.) : **corriger les murs doublés** dans `_draw_cell` (barres
-centrées sur la frontière, voir carte 5 étape 1), revérifier avec `spike_board.py`,
-puis **étape 1d** (plateau dans `GameScreen`), puis étapes 2 et 3, puis **« HUD en
-jeu »** (même stub), puis 2b (premier build). Question en suspens posée à Elhadj :
-avec la version centrée, à quel x se pose le mur E de la case (3, 2) (coin en
-(448, 280)) ? (lui faire refaire le calcul en 3 étapes).
+Prochaine étape (2 nov. soir) : committer les murs + `spike_board.py`, puis **étape B**
+(gums, code déjà expliqué, voir carte 5), puis C (Pac-Man) et D (fantômes), puis
+**refaire les sprites en 44 × 44**, puis le branchement `App` / `GameScreen` et le
+**HUD**, puis 2b (premier build). Il reste 5 jours (rendu le 7 nov.) et les cartes
+8 (highscores) et 9 (packaging) ne sont pas commencées.
+Questions en suspens posées à Elhadj :
+- avec `CELL_SIZE = 44`, à quel x se pose le mur E de la case (3, 2) et de quel pixel
+  à quel pixel va-t-il en largeur ? (frontière, `half`, résultat) ;
+- pourquoi `renderer.clear()` à chaque tour alors que le labyrinthe ne bouge pas ?
+- à la frame où la partie se termine, quel écran est dessiné (jeu ou fin) ?
+- le fond noir d'une super-pacgum peut-il effacer un mur ?
 Ouvrir la PR `graphic` → `main` quand je le décide (manip CLAUDE.md + spikes).
 Envoyer à Luc la taille de fenêtre / le nombre de cases max.
 À chaque nouvelle carte : annoncer son nom et ses sous-tâches (`pacman.json`) avant de coder.

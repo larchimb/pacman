@@ -1,4 +1,6 @@
 {
-  "Elhadj": 3000,
-  "Luc": 200
+  "highscores": [
+    {"name": "Elhadj", "score": 3000},
+    {"name": "Luc", "score": 200}
+  ]
 }

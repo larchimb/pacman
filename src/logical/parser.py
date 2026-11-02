@@ -17,6 +17,8 @@ class Parser():
     def check_file(path: str) -> dict[str, Any]:
         '''Read the file, remove comments and check the JSON format'''
         try:
+            if not isinstance(path, str):
+                raise ParsingError(f"'{path}' is not a valid file path")
             with open(path, encoding="utf-8") as f:
                 text = f.read()
         except FileNotFoundError as e:

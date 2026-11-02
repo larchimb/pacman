@@ -7,6 +7,7 @@ class MazeLoader():
     def __init__(self,
                  data: dict[str, Any]) -> None:
         self.raw_data = data
+        self.path_to_highscore: str = ".highscores.json"
         self.datas: dict[str, Any] = {
          "highscore": ".highscores.json",
          "levels": [
@@ -35,13 +36,14 @@ class MazeLoader():
         self.height_max = 19
         self.get_values()
 
-    def get_highscores(self) -> dict[str, int]:
+    def get_highscores(self) -> list[dict[str, int]]:
         '''Obtain the highscores from the file'''
         try:
             path = self.raw_data.get("highscore_filename")
             if not path:
                 raise ParsingError("no file for highscore")
             datas = Parser.check_file(path)
+            self.path_to_highscore = path
             return self.check_highscores(datas)
         except ParsingError as e:
             print(f"{e}, the default one is choosen")
@@ -51,21 +53,53 @@ class MazeLoader():
             return self.check_highscores(datas)
         except ParsingError as e:
             print(f"{e}, a new highscore file is created")
-        with open(path, "w", encoding="utf-8") as f:
-            f.write("{}")
-        return {}
+        return []
 
     @staticmethod
-    def check_highscores(datas: dict[str, Any]) -> dict[str, int]:
-        '''Check names and scores of the highscores'''
-        for key, value in datas.items():
-            if len(key) > 10:
-                raise ParsingError(f"{key} is too long, max 10 characters")
-            if (not isinstance(value, int)
-               or isinstance(value, bool)
-               or value < 0):
-                raise ParsingError("the score must be a positive int")
-        return datas
+    def is_valid_entry(name: Any, score: Any) -> bool:
+        '''Check the name and the score of one highscore'''
+        if not isinstance(name, str) or not name:
+            print(f"[VALUE ERROR]: highscore '{name}' ignored, "
+                  "the name must be a non-empty string")
+        elif len(name) > 10:
+            print(f"[VALUE ERROR]: highscore '{name}' ignored, "
+                  "name too long (max 10 characters)")
+        elif not name.replace(" ", "").isalnum():
+            print(f"[VALUE ERROR]: highscore '{name}' ignored, "
+                  "name must be alphanumeric")
+        elif (not isinstance(score, int)
+                or isinstance(score, bool)
+                or score < 0):
+            print(f"[VALUE ERROR]: highscore '{name}' ignored, "
+                  "the score must be a positive int")
+        else:
+            return True
+        return False
+
+    @staticmethod
+    def top_ten(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        '''Sort the highscores by score and keep the 10 best'''
+        return sorted(entries,
+                      key=lambda entry: entry["score"], reverse=True)[:10]
+
+    @staticmethod
+    def check_highscores(datas: dict[str, Any]) -> list[dict[str, Any]]:
+        '''Keep only the valid highscores, sorted, top 10'''
+        entries = datas.get("highscores")
+        if not isinstance(entries, list):
+            print("[VALUE ERROR]: 'highscores' must be a list, "
+                  "starting with an empty highscore list")
+            return []
+        valid: list[dict[str, Any]] = []
+        for entry in entries:
+            if not isinstance(entry, dict):
+                print(f"[VALUE ERROR]: highscore '{entry}' ignored, "
+                      "it must be {\"name\": ..., \"score\": ...}")
+            elif MazeLoader.is_valid_entry(entry.get("name"),
+                                           entry.get("score")):
+                valid.append({"name": entry["name"],
+                              "score": entry["score"]})
+        return MazeLoader.top_ten(valid)
 
     @staticmethod
     def is_valid_int(value: Any, minimum: int, maximum: int) -> bool:
@@ -80,7 +114,7 @@ class MazeLoader():
         '''To set up the levels'''
         levels = self.raw_data.get("levels")
         default_levels: list[list[int]] = self.datas["levels"]
-        if not levels:
+        if not isinstance(levels, list) or not levels:
             print(
                 "[VALUE ERROR]: no valid levels, the default ones are applied"
                 )

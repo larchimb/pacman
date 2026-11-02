@@ -24,3 +24,23 @@
 
 
 
+- le plus grand niveau fait 23×19 cases.
+-Avec une fenêtre fixe, il faut choisir la taille d'une case en pixels.
+-Par exemple, 32 px donne un plateau de 736×608, plus la place du HUD ;
+
+- les commits:
+feat	nouvelle fonctionnalité
+fix	correction de bug
+docs	documentation uniquement (README, CLAUDE.md…)
+refactor	réorganisation du code sans changer ce qu'il fait
+style	mise en forme (espaces, lint), sans changer la logique
+chore	maintenance (.gitignore, config, dépendances)
+test	ajout ou modification de tests
+
+# Keys that move Pac-Man: arrows and WASD give the same direction.
+DIRECTION_KEYS: dict[str, str] = {
+    "up": "up", "w": "up",
+    "down": "down", "s": "down",
+    "left": "left", "a": "left",
+    "right": "right", "d": "right",
+}

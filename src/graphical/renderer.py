@@ -22,6 +22,7 @@ pygame.font.Font(None) + render      mlx_string_put()
 pygame.display.flip()                mlx_do_sync()
 pygame.event.get()                   mlx_hook() / mlx_loop_hook()
 pygame.quit()                        mlx_destroy_window() + mlx_release()
+Image = pygame.Surface → (type of mlx image, void *)
 
 Colors are given as 0xRRGGBB integers, exactly like in MLX.
 """
@@ -29,6 +30,10 @@ Colors are given as 0xRRGGBB integers, exactly like in MLX.
 from dataclasses import dataclass
 
 import pygame
+
+# Type of an image, so other files can annotate images without
+# importing pygame (like the void * returned by mlx_new_image).
+Image = pygame.Surface
 
 # Size of the text drawn by string_put. MLX only has one fixed font,
 # so we never change it.
@@ -99,7 +104,7 @@ class Renderer:
             raise RendererError(f"cannot open the window: {err}") from err
         self.width: int = width
         self.height: int = height
-        self._images: dict[str, pygame.Surface] = {}
+        self._images: dict[str, Image] = {}
 
     @staticmethod
     def get_screen_size() -> tuple[int, int]:
@@ -108,13 +113,13 @@ class Renderer:
         info = pygame.display.Info()
         return (info.current_w, info.current_h)
 
-    def new_image(self, width: int, height: int) -> pygame.Surface:
+    def new_image(self, width: int, height: int) -> Image:
         """Create a black image in memory (mlx_new_image)."""
         return pygame.Surface((width, height))
 
     def new_filled_image(
         self, width: int, height: int, color: int
-    ) -> pygame.Surface:
+    ) -> Image:
         """Create an image of a single color."""
         image = self.new_image(width, height)
         rgb = to_rgb(color)
@@ -124,13 +129,13 @@ class Renderer:
         return image
 
     def image_pixel_put(
-        self, image: pygame.Surface, x: int, y: int, color: int
+        self, image: Image, x: int, y: int, color: int
     ) -> None:
         """Write one pixel in an image (mlx_get_data_addr buffer)."""
         if 0 <= x < image.get_width() and 0 <= y < image.get_height():
             image.set_at((x, y), to_rgb(color))
 
-    def load_image(self, path: str) -> pygame.Surface:
+    def load_image(self, path: str) -> Image:
         """Load a PNG file as an image (mlx_png_file_to_image)."""
         if path not in self._images:
             try:
@@ -149,7 +154,7 @@ class Renderer:
         """Draw one pixel in the window (mlx_pixel_put)."""
         self._window.set_at((x, y), to_rgb(color))
 
-    def put_image(self, image: pygame.Surface, x: int, y: int) -> None:
+    def put_image(self, image: Image, x: int, y: int) -> None:
         """Draw an image in the window (mlx_put_image_to_window)."""
         self._window.blit(image, (x, y))
 

@@ -1,34 +1,28 @@
-"""Temporary fake Game with the same attributes as the real one."""
+"""Fake Game for the graphics until the real one works (temporary)."""
 
 import random
 from dataclasses import dataclass
 
 from mazegenerator import MazeGenerator
 
-# Value of a cell with its 4 walls closed (the "42" logo).
+# Value of the closed cells that draw the "42" in the maze.
 CLOSED_CELL: int = 15
-# Number of pacgums placed on the board.
-NB_PACGUMS: int = 50
-# Directions used by the logic (Entity.DIRECTIONS in entities.py).
-DIRECTIONS: tuple[str, ...] = ("N", "E", "S", "W")
 
 
 @dataclass
 class FakeEntity:
-    """Pac-Man or a ghost: a position in cells and a direction."""
+    """Pac-Man or a ghost: a cell position and a direction."""
 
     pos: tuple[int, int]
     direction: str | None = None
 
 
 class FakeLevel:
-    """One level built like Luc's Level, with a public maze."""
+    """One level: the maze and what is placed in it, like Luc's Level."""
 
     def __init__(self, width: int, height: int, seed: int) -> None:
-        """Generate the maze and place everything on it."""
-        self.width: int = width
-        self.height: int = height
-        # The generator is not typed (Any): annotate what we receive.
+        """Generate the real maze, then place the elements."""
+        # The annotation tells mypy the type (the generator is untyped: Any).
         self.maze: list[list[int]] = MazeGenerator(
             (width, height), seed=seed
         ).maze
@@ -36,9 +30,9 @@ class FakeLevel:
         corners = [
             (0, 0), (width - 1, 0), (width - 1, height - 1), (0, height - 1)
         ]
-        # Same order as Luc: the index gives the color of the ghost
-        # (0 red, 1 pink, 2 blue, 3 orange).
-        self.ghosts: list[FakeEntity] = [FakeEntity(c) for c in corners]
+        # Same order as Luc: Hunter (red), Tricky (pink), Randomly (blue),
+        # Scary (orange): the index gives the color.
+        self.ghosts = [FakeEntity(corner) for corner in corners]
         self.supergums: set[tuple[int, int]] = set(corners)
         free_cells = [
             (x, y)
@@ -49,15 +43,15 @@ class FakeLevel:
             and (x, y) != self.pacman.pos
         ]
         self.pacgums: set[tuple[int, int]] = set(
-            random.sample(free_cells, min(NB_PACGUMS, len(free_cells)))
+            random.sample(free_cells, min(50, len(free_cells)))
         )
 
 
 class FakeGame:
-    """Fake Game: same attribute names as src/logical/game.py."""
+    """Same attributes and entry points as Luc's Game, without the rules."""
 
     def __init__(self) -> None:
-        """Start on the biggest level, with a fixed seed."""
+        """Create one level of the biggest size (23 x 19)."""
         self.level = FakeLevel(23, 19, seed=42)
         self.score: int = 0
         self.lives: int = 3
@@ -66,10 +60,10 @@ class FakeGame:
         self.result: str | None = None
 
     def handle_action(self, action: str) -> None:
-        """Turn Pac-Man (only to test the sprites)."""
-        if action in DIRECTIONS:
+        """Turn Pac-Man on a direction action, to test the sprites."""
+        if action in ("N", "E", "S", "W"):
             self.level.pacman.direction = action
 
     def update(self, dt: float) -> None:
-        """Advance the timer by dt seconds."""
+        """Only count the time: the real rules are in Luc's Game."""
         self.timer += dt

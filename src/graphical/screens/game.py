@@ -35,7 +35,6 @@ class GameScreen(Screen):
         action = ""
         if event.key == "space":
             self._app.pause(self)
-            action = "pause"
         elif event.key in DIRECTION_KEYS:
             action = DIRECTION_KEYS[event.key]
         # Temporary test keys until the real Game says when it ends.
@@ -59,9 +58,11 @@ class GameScreen(Screen):
 
     def update(self, dt: float) -> None:
         '''The main loop for animation'''
-        while not self.game.result:
-            ...
-
+        self.game.update(dt)
+        if self.game.result == "victory":
+            self._app.end_game(True, self.game.score)
+        elif self.game.result =="defeat":
+            self._app.end_game(False, self.game.score)
 
     def draw(self, renderer: Renderer) -> None:
         """Draw the game (only text for now)."""

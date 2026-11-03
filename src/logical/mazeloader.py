@@ -1,5 +1,6 @@
 from typing import Any
 from .parser import Parser, ParsingError
+import json
 
 
 class MazeLoader():
@@ -54,6 +55,24 @@ class MazeLoader():
         except ParsingError as e:
             print(f"{e}, a new highscore file is created")
         return []
+
+    def save_score(self, name: str, score: int) -> bool:
+        '''Add the score to the highscores and save the top 10'''
+        name = name.strip()
+        if not MazeLoader.is_valid_entry(name, score):
+            return False
+        highscores = self.datas["highscore"]
+        highscores.append({"name": name, "score": score})
+        self.datas["highscore"] = MazeLoader.top_ten(highscores)
+        path = self.path_to_highscore
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump({"highscores": self.datas["highscore"]},
+                          f, indent=2)
+        except OSError as e:
+            print(f"[SAVE ERROR]: cannot write '{path}': {e}")
+            return False
+        return True
 
     @staticmethod
     def is_valid_entry(name: Any, score: Any) -> bool:

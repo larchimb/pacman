@@ -24,3 +24,10 @@ class Screen:
 
     def draw(self, renderer: Renderer) -> None:
         """Draw the screen. Does nothing by default."""
+        middle = int(self._app.width / 2)
+        height = self._app.height - 50
+        renderer.string_put(
+            int(middle - 8 * self._app.character),
+            height,
+            0x888888,
+            "Escape: back to menu")

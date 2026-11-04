@@ -10,7 +10,6 @@ if TYPE_CHECKING:
     from src.graphical.app import App
 
 
-# Keys that move Pac-Man: arrows and WASD give the same direction.
 DIRECTION_KEYS: dict[str, str] = {
     "up": "up", "w": "up",
     "down": "down", "s": "down",
@@ -19,7 +18,6 @@ DIRECTION_KEYS: dict[str, str] = {
 }
 
 CELL_SIZE: int = 52
-# Thickness of a wall bar in pixels.
 WALL_THICKNESS: int = 4
 WALL_COLOR: int = 0x2121DE
 PACGUM_SIZE: int = 10
@@ -27,31 +25,27 @@ SUPERGUM_SIZE: int = 20
 GUM_COLOR: int = 0xFFB8AE
 SPRITE_SIZE: int = 44
 ASSETS_DIR: str = "assets"
-# Sprite of Pac-Man for each direction of the logic (Entity.DIRECTIONS).
 PACMAN_SPRITES: dict[str, str] = {
     "N": "pacman_up.png",
     "E": "pacman_right.png",
     "S": "pacman_down.png",
     "W": "pacman_left.png",
 }
-# Before his first move, direction is None: he looks to the right.
 PACMAN_DEFAULT: str = "E"
 GHOST_SPRITES: tuple[str, ...] = (
     "ghost_red.png", "ghost_pink.png", "ghost_blue.png", "ghost_orange.png",
 )
 GHOST_WEAK_SPRITE: str = "ghost_edible.png"
 
-HUD_HEIGHT: int = 80
+HUD_HEIGHT: int = 50
 HUD_COLOR: int = 0xFFFFFF
 HUD_Y: int = 28
 HUD_MARGIN: int = 40
 
-# Bit of each wall in a cell (same values as Entity.DIRECTIONS).
 NORTH: int = 1
 EAST: int = 2
 SOUTH: int = 4
 WEST: int = 8
-# Cell with its 4 walls closed (the "42" logo).
 CLOSED_CELL: int = 15
 
 
@@ -61,7 +55,6 @@ class GameScreen(Screen):
     def __init__(self, app: "App", game: Game) -> None:
         """Start with no direction asked yet."""
         super().__init__(app)
-        # Last direction asked by the player (sent to the game later).
         self._direction: str = "none"
         self.game = game
         self.renderer = app._renderer
@@ -161,17 +154,18 @@ class GameScreen(Screen):
             renderer.string_put(
                 650,
                 self._app.height - 50,
-                0xFFFF00,
-                "Cheat code : ON  1: Invincible  2: Freeze  3: Extra Life  "
-                "4: Speed  5: Level Up"
+                0xFFFFFF,
+                "Cheat code : ON   1: Invincible   2: Freeze   3: Extra Life  "
+                " 4: Speed   5: Level Up"
                 )
         else:
             renderer.string_put(
                 650,
                 self._app.height - 50,
-                0xFFFF00,
+                0xFFFFFF,
                 "Cheat code : OFF"
                 )
+        self._draw_hud(self.renderer)
 
     def _cell_pixel(self, pos: tuple[int, int]) -> tuple[int, int]:
         """Return the top-left pixel of the cell at pos."""
@@ -216,9 +210,6 @@ class GameScreen(Screen):
         if cell == CLOSED_CELL:
             self.renderer.put_image(self._full_cell, px, py)
             return
-        # A wall is shared by 2 cells: each bar is centered on the border
-        # (half inside, half outside), so both cells draw it at the same
-        # place and it stays WALL_THICKNESS thick.
         half = WALL_THICKNESS // 2
         if cell & NORTH:
             self.renderer.put_image(self._h_wall, px - half, py - half)

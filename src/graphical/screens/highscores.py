@@ -27,7 +27,8 @@ class HighscoresScreen(Screen):
         try:
             with open(self._app.config.path_to_highscore) as f:
                 file = json.load(f)
-                scores = file["highscores"]
+                scores = sorted(file["highscores"],
+                    key=lambda entry: entry["score"], reverse=True)[:10]
         except Exception as e:
             scores = None
         if not scores:
@@ -53,4 +54,6 @@ class HighscoresScreen(Screen):
                 f"{element["score"]}"
                 )
             i += 1
+            if i > 10:
+                break
         super().draw(renderer)

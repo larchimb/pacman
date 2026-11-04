@@ -9,6 +9,7 @@ from typing import Literal
 SUPERTIME = 8
 GHOST_RESPAWN = 5.0
 
+
 class Game():
     '''Class with the config and the state of the whole game'''
     cheating_keys = {

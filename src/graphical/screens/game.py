@@ -2,7 +2,9 @@
 
 from typing import TYPE_CHECKING
 
-from src.graphical.renderer import KEY_DOWN, InputEvent, Renderer, Image, Pixels
+from src.graphical.renderer import (
+    KEY_DOWN, InputEvent, Renderer, Image, Pixels
+)
 from src.graphical.screens.screen import Screen
 from src.logical.game import Game
 from src.logical.entities import Entity

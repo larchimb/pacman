@@ -32,6 +32,9 @@ class App:
         # The screen currently shown; it receives keys and draws itself.
         self._screen: Screen = MenuScreen(self)
         self.config = config
+        self.width = width
+        self.height = height
+        self.character = 15
 
     def change_screen(self, screen: Screen) -> None:
         """Replace the current screen by another one."""

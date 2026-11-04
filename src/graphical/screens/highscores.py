@@ -2,6 +2,7 @@
 
 from src.graphical.renderer import KEY_DOWN, InputEvent, Renderer
 from src.graphical.screens.screen import Screen
+import json
 
 
 class HighscoresScreen(Screen):
@@ -14,6 +15,42 @@ class HighscoresScreen(Screen):
 
     def draw(self, renderer: Renderer) -> None:
         """Draw the scores (placeholder text until the highscore table)."""
-        renderer.string_put(20, 20, 0xFFFF00, "HIGHSCORES")
-        renderer.string_put(20, 50, 0xFFFFFF, "No score yet")
-        renderer.string_put(20, 140, 0x888888, "Escape: back to menu")
+        title = "HIGHSCORES"
+        middle = int(self._app.width / 2)
+        renderer._font
+        renderer.string_put(
+            int(middle - (len(title) / 2) * self._app.character),
+            50,
+            0xFFFF00,
+            title
+            )
+        try:
+            with open(self._app.config.path_to_highscore) as f:
+                file = json.load(f)
+                scores = file["highscores"]
+        except Exception as e:
+            scores = None
+        if not scores:
+            renderer.string_put(
+                int(middle - 4 * self._app.character),
+                150,
+                0xFFFFFF,
+                "No score yet")
+            return
+        i = 1
+        for element in scores:
+            height = 50 + i * 50
+            renderer.string_put(
+                int(middle - 20 * self._app.character),
+                height,
+                0xFFFF00,
+                f"{element["name"]} : "
+                )
+            renderer.string_put(
+                int(middle + 15 * self._app.character),
+                height,
+                0xFFFF00,
+                f"{element["score"]}"
+                )
+            i += 1
+        super().draw(renderer)

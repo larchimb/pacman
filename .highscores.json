@@ -1,6 +1,16 @@
 {
   "highscores": [
-    {"name": "Elhadj", "score": 3000},
-    {"name": "Luc", "score": 200}
+    {
+      "name": "Elhadj",
+      "score": 3000
+    },
+    {
+      "name": "Luc",
+      "score": 200
+    },
+    {
+      "name": "test",
+      "score": 0
+    }
   ]
 }

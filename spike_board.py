@@ -23,9 +23,18 @@ while running:
         # Test only: next level, to check every maze size is centered.
         elif event.kind == "key_down" and event.key == "n":
             game.pass_level()
+        elif event.kind == "key_down" and event.key in (
+            "up", "down", "left", "right"
+        ):
+            game.handle_action(event.key)
+        elif event.kind == "key_down" and event.key in ("c", "1", "2"):
+            game.handle_action(
+                {"c": "cheat", "1": "invincible", "2": "freeze"}[event.key]
+            )
 
+    game.update(1 / 60)
     renderer.clear()
-    board.draw(renderer, game.level._maze)
+    board.draw(renderer, game.level)
     renderer.present()
     time.sleep(1 / 60)
 

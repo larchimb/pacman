@@ -33,6 +33,11 @@ class App:
         self._screen: Screen = MenuScreen(self)
         self.config = config
 
+    @property
+    def renderer(self) -> Renderer:
+        """Give the window to screens that create their images once."""
+        return self._renderer
+
     def change_screen(self, screen: Screen) -> None:
         """Replace the current screen by another one."""
         self._screen = screen

@@ -3,73 +3,62 @@
 from typing import TYPE_CHECKING
 
 from src.graphical.renderer import KEY_DOWN, InputEvent, Renderer
+from src.graphical.board_view import BoardView
 from src.graphical.screens.screen import Screen
 from src.logical.game import Game
 
 if TYPE_CHECKING:
     from src.graphical.app import App
 
-# Keys that move Pac-Man: arrows and WASD give the same direction.
-DIRECTION_KEYS: dict[str, str] = {
+# Key of the keyboard -> action of Game.handle_action (Luc's strings).
+ACTION_KEYS: dict[str, str] = {
     "up": "up", "w": "up",
     "down": "down", "s": "down",
     "left": "left", "a": "left",
     "right": "right", "d": "right",
+    "c": "cheat",
+    "1": "invincible", "2": "freeze", "3": "life",
+    "4": "speed", "5": "level",
 }
+HUD_COLOR: int = 0xFFFFFF
+HUD_Y: int = 28
 
 
 class GameScreen(Screen):
     """Screen shown while playing."""
 
     def __init__(self, app: "App", game: Game) -> None:
-        """Start with no direction asked yet."""
+        """Keep the game and build the board images once."""
         super().__init__(app)
-        # Last direction asked by the player (sent to the game later).
-        self._direction: str = "none"
         self.game = game
+        self._board = BoardView(app.renderer)
 
     def handle_event(self, event: InputEvent) -> None:
-        """Pause on Space, remember the last direction key."""
+        """Pause on Space, send every other known key to the game."""
         if event.kind != KEY_DOWN:
             return
-        action = ""
         if event.key == "space":
             self._app.pause(self)
-        elif event.key in DIRECTION_KEYS:
-            action = DIRECTION_KEYS[event.key]
-        # Temporary test keys until the real Game says when it ends.
-        elif event.key == "c":
-            action = "cheat"
-        elif event.key == "1":
-            action = "invincible"
-        elif event.key == "2":
-            action = "freeze"
-        elif event.key == "3":
-            action = "life"
-        elif event.key == "4":
-            action = "speed"
-        elif event.key == "5":
-            action = "level"
-        elif event.key == "g":
-            self._app.end_game(False, 0)
-        elif event.key == "v":
-            self._app.end_game(True, 0)
-        self.game.handle_action(action)
+        elif event.key in ACTION_KEYS:
+            self.game.handle_action(ACTION_KEYS[event.key])
 
     def update(self, dt: float) -> None:
-        '''The main loop for animation'''
+        """Advance the game, then show the end screen if it is over."""
         self.game.update(dt)
         if self.game.result == "victory":
             self._app.end_game(True, self.game.score)
-        elif self.game.result =="defeat":
+        elif self.game.result == "defeat":
             self._app.end_game(False, self.game.score)
 
     def draw(self, renderer: Renderer) -> None:
-        """Draw the game (only text for now)."""
-        renderer.string_put(20, 20, 0xFFFF00, "GAME")
+        """Draw the board, then the HUD above it."""
+        game = self.game
+        self._board.draw(renderer, game.level)
+        renderer.string_put(40, HUD_Y, HUD_COLOR, f"Score: {game.score}")
+        renderer.string_put(400, HUD_Y, HUD_COLOR, f"Lives: {game.lives}")
         renderer.string_put(
-            20, 50, 0xFFFFFF, f"Direction: {self._direction}"
+            700, HUD_Y, HUD_COLOR, f"Level: {game.current_level + 1}"
         )
-        renderer.string_put(20, 80, 0x888888, "Space: pause")
-        renderer.string_put(20, 110, 0x888888, "G: game over")
-        renderer.string_put(20, 140, 0x888888, "V: victory")
+        renderer.string_put(
+            1000, HUD_Y, HUD_COLOR, f"Time: {max(0, int(game.level_timer))}"
+        )

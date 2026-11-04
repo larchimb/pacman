@@ -18,6 +18,7 @@ class Entity():
         self.direction: str | None = None
         self.next_direction: str | None = None
         self.elapsed: float = 0
+        self.prev_pos: tuple[int, int] = start
 
     def can_move(self, direction: str) -> bool:
         '''Check if there is no wall in this direction'''
@@ -26,6 +27,7 @@ class Entity():
 
     def move(self) -> None:
         '''Move one cell, turning to next_direction if possible'''
+        self.prev_pos = self.pos
         if self.next_direction and self.can_move(self.next_direction):
             self.direction = self.next_direction
         if self.direction and self.can_move(self.direction):
@@ -45,6 +47,14 @@ class Entity():
         self.direction = None
         self.next_direction = None
         self.elapsed = 0
+        self.prev_pos = self.start
+
+    @property
+    def cell(self) -> tuple[int, int]:
+        '''The cell where the entity is drawn: it changes halfway'''
+        if self.elapsed < self.step_time / 2:
+            return self.prev_pos
+        return self.pos
 
 
 class PacMan(Entity):

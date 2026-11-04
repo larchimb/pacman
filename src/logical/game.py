@@ -78,7 +78,7 @@ class Game():
 
     def eat(self) -> None:
         '''Eat the gum under Pac-Man, score it and apply its effect'''
-        eaten = self.level.eat(self.level.pacman.pos)
+        eaten = self.level.eat(self.level.pacman.cell)
         if eaten:
             self.score += self.config.datas[f"points_per_{eaten}"]
             if self.level.is_cleared():
@@ -164,7 +164,7 @@ class Game():
     def collision(self) -> None:
         '''To deal with collision between Pacman and a ghost'''
         for g in self.level.ghosts:
-            if self.level.pacman.pos == g.pos:
+            if self.level.pacman.cell == g.cell:
                 if g.waiting_time > 0:
                     continue
                 elif g.weak:
@@ -190,12 +190,10 @@ class Game():
         level = self.level
         pacman = level.pacman
         ghosts = level.ghosts
-        prev_pacman = pacman.pos
         pacman.tick(dt)
-        if not prev_pacman == pacman.pos:
-            self.eat()
-            if self.level is not level:
-                return
+        self.eat()
+        if self.level is not level:
+            return
         self.collision()
         if not self.frozen:
             for ghost in ghosts:

@@ -9,6 +9,8 @@ from src.graphical.screens.pause import PauseScreen
 from src.graphical.screens.highscores import HighscoresScreen
 from src.graphical.screens.instructions import InstructionsScreen
 from src.graphical.screens.end import EndScreen
+from src.logical.game import Game
+from src.logical.mazeloader import MazeLoader
 
 
 # Number of frames per second, and duration of one frame in seconds.
@@ -19,12 +21,17 @@ FRAME_TIME: float = 1.0 / FPS
 class App:
     """Own the window and run the main loop at a fixed frame rate."""
 
-    def __init__(self, width: int, height: int, title: str) -> None:
+    def __init__(self,
+                 width: int,
+                 height: int,
+                 title: str,
+                 config: MazeLoader) -> None:
         """Open the window."""
         self._renderer = Renderer(width, height, title)
         self._running: bool = False
         # The screen currently shown; it receives keys and draws itself.
         self._screen: Screen = MenuScreen(self)
+        self.config = config
 
     def change_screen(self, screen: Screen) -> None:
         """Replace the current screen by another one."""
@@ -48,7 +55,8 @@ class App:
 
     def start_game(self) -> None:
         """Start a new game."""
-        self.change_screen(GameScreen(self))
+        game = Game(self.config)
+        self.change_screen(GameScreen(self, game))
 
     def pause(self, game: Screen) -> None:
         """Pause the game; the pause screen keeps it to resume it."""
@@ -60,7 +68,9 @@ class App:
 
     def save_score(self, name: str, score: int) -> None:
         """Save the score of the player, then go back to the menu."""
-        self.show_menu()
+        registered = self.config.save_score(name, score)
+        if registered:
+            self.show_menu()
 
     def run(self) -> None:
         """Run the main loop until the window is closed."""

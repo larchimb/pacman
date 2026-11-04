@@ -101,7 +101,6 @@ class GameScreen(Screen):
             self._app.pause(self)
         elif event.key in DIRECTION_KEYS:
             action = DIRECTION_KEYS[event.key]
-        # Temporary test keys until the real Game says when it ends.
         elif event.key == "c":
             action = "cheat"
         elif event.key == "1":
@@ -158,7 +157,21 @@ class GameScreen(Screen):
             self._put_sprite(
                 image, self._entity_pixel(ghost)
             )
-        self._draw_hud(renderer)
+        if self.game.cheating_mode:
+            renderer.string_put(
+                650,
+                self._app.height - 50,
+                0xFFFF00,
+                "Cheat code : ON  1: Invincible  2: Freeze  3: Extra Life  "
+                "4: Speed  5: Level Up"
+                )
+        else:
+            renderer.string_put(
+                650,
+                self._app.height - 50,
+                0xFFFF00,
+                "Cheat code : OFF"
+                )
 
     def _cell_pixel(self, pos: tuple[int, int]) -> tuple[int, int]:
         """Return the top-left pixel of the cell at pos."""

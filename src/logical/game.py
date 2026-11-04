@@ -149,6 +149,12 @@ class Game():
         elif action == "level":
             self.pass_level()
 
+    def deactivate_cheat(self) -> None:
+        '''Deactivate the cheat codes'''
+        self.level.pacman.invincible = False
+        self.frozen = False
+        self.level.pacman.step_time = self.level.pacman.basic_step
+
     def handle_action(self, action: str) -> None:
         '''Apply an action asked by the player'''
         if action in PacMan.KEYS:
@@ -184,6 +190,8 @@ class Game():
         self.update_level_timer(dt)
         if self.supertime:
             self.update_supergum_timer(dt)
+        if not self.cheating_mode:
+            self.deactivate_cheat()
         level = self.level
         pacman = level.pacman
         ghosts = level.ghosts

@@ -244,6 +244,6 @@ class Scary(Ghost):
             self.find_shortest_path(self.pacman.pos)
             if self.shortest_path:
                 self.next_direction = self.shortest_path[0]
-            if self.shortest_path and len(self.shortest_path) < 6:
+            if self.shortest_path and len(self.shortest_path) < 8:
                 self.way_back = True
             self.shortest_path = None

@@ -139,7 +139,28 @@ Simulation de fusion `logic` → `graphic` : **un seul conflit**, fin de `game.p
 **son** côté (supprimer tout le bloc). Mes `prev_pos` / `cell` fusionnent sans conflit ;
 `text.txt` non touché par Luc.
 
-Reste à faire :
+**Avancement (4 nov., soir, Mac)** :
+- ✅ Étape 1 : `origin/logic` fusionné dans `graphic` (commit `64c81fb` « conflict solve »).
+- ✅ Étape 3 (moitié) : propriété `App.renderer` ajoutée. ❌ `App.save_score` encore
+  `if registered: self.show_menu()` → à remplacer par `config.save_score(...)` puis
+  `show_menu()` **toujours**.
+- ✅ Étape 4 : `GameScreen` branché : `self.game`, `self._board = BoardView(app.renderer)`,
+  `ACTION_KEYS` (dict touche → action), Espace testé **avant** (pause, pas une action de
+  `Game`), `update` → `game.update(dt)` + `end_game` sur `result`, `draw` = `BoardView` +
+  HUD (`Score` x=40, `Lives` x=400, `Level` x=700, `Time` x=1000, `HUD_Y = 28`).
+  ❌ Docstring du module encore « (empty for now) ».
+- ✅ **Parcours testé sans fenêtre** (en pilotant `App` avec le vrai `Game`) : menu →
+  jeu (déplacement, score) → pause (timer arrêté) → reprise (même `Game`) → triche `c`+`5`
+  → dernière vie → `EndScreen` → nom + Entrée → menu ; score bien écrit dans
+  `.highscores.json` (fichier remis dans l'état de git après le test).
+- ❌ Menu pause écrit **par-dessus le labyrinthe** → rectangle noir `self._box =
+  app.renderer.new_filled_image(360, 260, 0x000000)` créé dans `__init__`, posé entre
+  `self._game.draw(renderer)` et le texte.
+- ❌ Écrans décentrés pour 1600 × 1040 (`PAUSE_X = 620`, `END_X = 480`, `OPTIONS_X = 40`).
+- ❌ Étape 2 (Luc) : `pac-man.py` ne lance toujours pas `App` → impossible de jouer avec
+  `python3 pac-man.py config.json` tant que ce n'est pas fait.
+
+Reste à faire (liste d'origine) :
 1. `git merge origin/logic` (conflit ci-dessus).
 2. **Luc** : `pac-man.py` lance `App(1600, 1040, "Pac-Man", config).run()` (aujourd'hui
    il crée juste un `Game`) ; imports dans `main()` dans un `try` (pas de traceback si
@@ -723,10 +744,11 @@ Dates Trello (2026) : rendu final le 7 nov. Sprites 16 oct, machine à états 17
 menu 20 oct, HUD 21 oct, pause 22 oct, fin + saisie 24 oct, premier build 24 oct,
 highscores 27-28 oct, packaging 31 oct.
 
-Prochaine étape (4 nov.) : **le branchement**, avec Luc (étapes 1 à 6 dans
-« Branchement : état au 4 nov. », section Architecture) : merge `origin/logic`,
-`pac-man.py` (Luc), `App.renderer` + `save_score` (moi), `GameScreen` avec `BoardView` +
-HUD (moi), test complet, recentrage des écrans pour 1600 × 1040. Puis **highscores**
+Prochaine étape (4 nov. soir) : finir le branchement (voir « Avancement » dans
+Architecture) : `App.save_score` (menu toujours), docstring de `screens/game.py`,
+rectangle noir derrière le menu pause, recentrage des écrans pour 1600 × 1040 ; **Luc**
+: `pac-man.py` qui lance `App(1600, 1040, "Pac-Man", config).run()`, puis test à la main
+du vrai jeu. Puis **highscores**
 (top 10 affiché dans le menu / `HighscoresScreen`, la sauvegarde existe chez Luc), puis
 **packaging** PyInstaller + Itch.io (chemin `assets/` à rendre indépendant du dossier
 courant), puis README + dossier de gestion de projet (avec Luc), puis l'explication
@@ -738,6 +760,10 @@ Questions en suspens posées à Elhadj (sans réponse) :
 - pourquoi `start_game()` crée un nouveau `Game` alors que la pause réutilise le même
   `GameScreen` ?
 - avec `CELL_SIZE = 50` et `SPRITE_SIZE = 44`, combien de pixels entre un fantôme et le mur ?
+- dans `GameScreen.handle_event`, pourquoi Espace est testé avant `ACTION_KEYS` et
+  n'y figure pas ?
+- quelle ligne de **son** code arrête le temps pendant la pause, alors que Luc a
+  supprimé `game.paused` ?
 Ouvrir la PR `graphic` → `main` quand je le décide (manip CLAUDE.md + spikes).
 Envoyer à Luc la taille de fenêtre / le nombre de cases max.
 À chaque nouvelle carte : annoncer son nom et ses sous-tâches (`pacman.json`) avant de coder.

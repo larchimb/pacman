@@ -3,17 +3,12 @@
 from src.graphical.renderer import KEY_DOWN, InputEvent, Renderer
 from src.graphical.screens.screen import Screen
 
-# Colors (MLX format 0xRRGGBB).
 TITLE_COLOR: int = 0xFFFF00
 TEXT_COLOR: int = 0xFFFFFF
 HELP_COLOR: int = 0x888888
 
-# Position of the first line and space between two lines, in pixels.
-TEXT_X: int = 40
-TEXT_Y: int = 30
 LINE_HEIGHT: int = 34
 
-# Each line: (color, text). An empty text is a blank line between sections.
 INSTRUCTIONS: tuple[tuple[int, str], ...] = (
     (TITLE_COLOR, "CONTROLS"),
     (TEXT_COLOR, "Arrows / WASD: move Pac-Man"),
@@ -45,11 +40,13 @@ class InstructionsScreen(Screen):
             self._app.show_menu()
 
     def draw(self, renderer: Renderer) -> None:
-        """Draw every line of the instructions, then the help line."""
-        for index, (color, text) in enumerate(INSTRUCTIONS):
-            # A blank line draws nothing but still takes its place.
+        """Draw the instructions as a block centered in the window."""
+        lines = INSTRUCTIONS + (TEXT_COLOR, "")
+        widest = max(renderer.text_width(text) for _, text in lines)
+        left = (renderer.width - widest) // 2
+        top = (renderer.height - len(lines) * LINE_HEIGHT) // 2
+        for index, (color, text) in enumerate(lines):
             if text:
-                y = TEXT_Y + index * LINE_HEIGHT
-                renderer.string_put(TEXT_X, y, color, text)
-        help_y = TEXT_Y + (len(INSTRUCTIONS) + 1) * LINE_HEIGHT
-        renderer.string_put(TEXT_X, help_y, HELP_COLOR, "Escape: back to menu")
+                y = top + index * LINE_HEIGHT
+                renderer.string_put(left, y, color, text)
+        super().draw(renderer)

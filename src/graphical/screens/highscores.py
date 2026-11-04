@@ -21,7 +21,7 @@ class HighscoresScreen(Screen):
         renderer.string_put(
             int(middle - (len(title) / 2) * self._app.character),
             50,
-            0xFFFF00,
+            0xFFFFFF,
             title
             )
         try:
@@ -44,13 +44,13 @@ class HighscoresScreen(Screen):
             renderer.string_put(
                 int(middle - 20 * self._app.character),
                 height,
-                0xFFFF00,
+                0xFFFFFF,
                 f"{element["name"]} : "
                 )
             renderer.string_put(
                 int(middle + 15 * self._app.character),
                 height,
-                0xFFFF00,
+                0xFFFFFF,
                 f"{element["score"]}"
                 )
             i += 1

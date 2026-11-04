@@ -24,7 +24,7 @@ class MazeLoader():
             [23, 19]
          ],
          "lives": 3,
-         "pacgum": 20,
+         "pacgum": 1000,
          "points_per_pacgum": 10,
          "points_per_supergum": 50,
          "points_per_ghost": 200,
@@ -192,7 +192,7 @@ class MazeLoader():
     def get_pacgum(self, setting: str) -> None:
         '''To check pacgum per level'''
         value = self.raw_data.get(setting)
-        if not self.is_valid_int(value, 10, 10000):
+        if not self.is_valid_int(value, 20, 10000):
             print(f"[VALUE ERROR]: '{setting}' isn't good "
                   f"10 <= {setting} , the default one is applied")
         else:

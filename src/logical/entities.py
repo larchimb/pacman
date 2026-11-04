@@ -82,7 +82,7 @@ class PacMan(Entity):
         if not self.basic_step == self.step_time:
             self.step_time = self.basic_step
         else:
-            self.step_time /= 2
+            self.step_time *= 0.6
 
 
 class Ghost(Entity, ABC):

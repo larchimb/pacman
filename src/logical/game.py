@@ -6,6 +6,9 @@ import random
 from typing import Literal
 
 
+SUPERTIME = 8
+GHOST_RESPAWN = 5.0
+
 class Game():
     '''Class with the config and the state of the whole game'''
     cheating_keys = {
@@ -87,7 +90,7 @@ class Game():
     def activate_power(self) -> None:
         '''To activate pacman power, slow down the ghosts'''
         self.supertime = True
-        self.supergum_timer: float = 12
+        self.supergum_timer: float = SUPERTIME
         for g in self.level.ghosts:
             g.weak = True
             g.step_time = 1.5 * g.basic_step
@@ -164,7 +167,7 @@ class Game():
                 elif g.weak:
                     self.score += self.config.datas["points_per_ghost"]
                     g.respawn()
-                    g.waiting_time = 5.0
+                    g.waiting_time = GHOST_RESPAWN
                 elif self.level.pacman.invincible:
                     continue
                 else:

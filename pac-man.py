@@ -1,6 +1,5 @@
 from src.logical.parser import Parser
 from src.logical.mazeloader import MazeLoader
-from src.logical.game import Game
 from src.graphical.app import App
 import sys
 

@@ -3,6 +3,9 @@ from mazegenerator import MazeGenerator
 from .entities import PacMan, Ghost, Hunter, Tricky, Randomly, Scary
 import random
 
+PACMAN_SPEED = 0.27
+GHOST_SPEED = 0.38
+
 
 class Level():
     '''Class with all informations for a level'''
@@ -15,14 +18,14 @@ class Level():
         self._height = len(self._maze)
         xpacman = (self._width - 1) // 2
         ypacman = (self._height - 1) // 2
-        self.pacman = PacMan(self._maze, (xpacman, ypacman), 0.55)
+        self.pacman = PacMan(self._maze, (xpacman, ypacman), PACMAN_SPEED)
         self.supergums = self.supergums_set_up()
         self.pacgums = self.pacgums_set_up(config.datas["pacgum"])
         self.ghosts: list[Ghost] = [
-            Hunter(self._maze, (0, 0), 0.75),
-            Tricky(self._maze, (self._width - 1, 0), 0.75),
-            Randomly(self._maze, (self._width - 1, self._height - 1), 0.75),
-            Scary(self._maze, (0, self._height - 1), 0.75)
+            Hunter(self._maze, (0, 0), GHOST_SPEED),
+            Tricky(self._maze, (self._width - 1, 0), GHOST_SPEED),
+            Randomly(self._maze, (self._width - 1, self._height - 1), GHOST_SPEED),
+            Scary(self._maze, (0, self._height - 1), GHOST_SPEED)
         ]
         for ghost in self.ghosts:
             ghost.set_pacman(self.pacman)

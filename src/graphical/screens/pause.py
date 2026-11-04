@@ -55,12 +55,14 @@ class PauseScreen(Screen):
     def draw(self, renderer: Renderer) -> None:
         """Draw the frozen game, then the pause menu on top of it."""
         self._game.draw(renderer)
-        renderer.string_put(PAUSE_X, PAUSE_Y, TITLE_COLOR, "PAUSE")
+        width = int(self._app.width / 2 - 100)
+        height = int(self._app.height / 2 - 100)
+        renderer.string_put(width, height, TITLE_COLOR, "PAUSE")
         for index, (text, _) in enumerate(self._options):
-            y = PAUSE_Y + (index + 1) * LINE_HEIGHT
+            y = height + (index + 1) * LINE_HEIGHT
             if index == self._selected:
-                renderer.string_put(PAUSE_X, y, SELECTED_COLOR, "> " + text)
+                renderer.string_put(width, y, SELECTED_COLOR, "> " + text)
             else:
-                renderer.string_put(PAUSE_X, y, NORMAL_COLOR, "  " + text)
-        help_y = PAUSE_Y + (len(self._options) + 1) * LINE_HEIGHT + 20
-        renderer.string_put(PAUSE_X, help_y, HELP_COLOR, "Space: resume")
+                renderer.string_put(width, y, NORMAL_COLOR, "  " + text)
+        help_y = height + (len(self._options) + 1) * LINE_HEIGHT + 20
+        renderer.string_put(width, help_y, HELP_COLOR, "Space: resume")

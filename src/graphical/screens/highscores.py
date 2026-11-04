@@ -39,7 +39,7 @@ class HighscoresScreen(Screen):
             return
         i = 1
         for element in scores:
-            height = 50 + i * 50
+            height = 50 + i * 100
             renderer.string_put(
                 int(middle - 20 * self._app.character),
                 height,

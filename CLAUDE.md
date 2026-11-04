@@ -99,7 +99,9 @@ Tout le reste = **lecture d'attributs** dans mes `draw` (je ne modifie jamais `G
 `game.level_timer` (temps restant du niveau ; **pas** `timer`), `game.result`
 (`"victory"` / `"defeat"` / `None`), `game.level` (objet `Level` : grille `_maze`,
 `pacman.pos` / `pacman.direction` (`None` au départ), `ghosts` (chacun a `weak`
-= comestible), `pacgums`, `supergums`).
+= comestible et `waiting_time` > 0 = mangé, en attente de respawn), `pacgums`,
+`supergums`). Pour le glissement : `entity.prev_pos`, `entity.pos`,
+`entity.elapsed`, `entity.step_time` (ajoutés / utilisés le 4 nov., voir carte 5).
 
 Chaînes d'action (à copier **exactement**, une faute = action ignorée sans erreur),
 vérifiées dans le code de Luc le 2 nov. :
@@ -115,12 +117,46 @@ Points avec Luc :
 1. ~~Chaînes des directions~~ : **réglé**, `PacMan.KEYS` = `"up"`… = les valeurs de
    mon `DIRECTION_KEYS`.
 2. ~~Orthographe~~ : **réglé**, Luc écrit `"invincible"`.
-3. Pause : je propose de **ne pas** envoyer `"pause"` (mon `PauseScreen` n'appelle
-   plus `update`, ça suffit). Si on l'envoie, il faut le renvoyer en reprenant,
-   sinon `game.paused` reste `True`.
-4. Accès public à la grille (propriété `maze` dans `Level`, au lieu de lire `_maze`).
+3. ~~Pause~~ : **réglé** (commit de Luc `26831e6`, 3 nov.) : `game.paused` et l'action
+   `"pause"` supprimés ; la pause = mon `PauseScreen` qui n'appelle plus `update`.
+4. Accès public à la grille (propriété `maze` dans `Level`, au lieu de lire `_maze`) :
+   toujours à demander.
 
-### Branchement logique ↔ graphisme (conçu le 2 nov., **mis de côté** : plateau d'abord)
+### Branchement : état au 4 nov. (prochaine grosse étape)
+
+**Luc a commencé** sur `logic`, commit `26831e6` (3 nov., **pas encore dans `main` ni
+`graphic`**) :
+- `app.py` : `App(width, height, title, config: MazeLoader)`, `self.config` (public),
+  `start_game()` = `GameScreen(self, Game(self.config))` → nouvelle partie = nouvel objet.
+- `screens/game.py` : `GameScreen(app, game)`, `self.game` ; `handle_event` →
+  `game.handle_action(action)` (directions + `c` + `1`-`5`) ; `update(dt)` →
+  `game.update(dt)` puis `end_game(...)` si `result` = `"victory"` / `"defeat"`.
+- `game.py` : `paused` supprimé ; `save_score` **déplacé dans `MazeLoader`**
+  (`config.save_score(name, score) -> bool`), appelé par `App.save_score`.
+
+Simulation de fusion `logic` → `graphic` : **un seul conflit**, fin de `game.py`
+(`save_score` supprimé chez Luc, son saut de ligne final touché chez moi) → garder
+**son** côté (supprimer tout le bloc). Mes `prev_pos` / `cell` fusionnent sans conflit ;
+`text.txt` non touché par Luc.
+
+Reste à faire :
+1. `git merge origin/logic` (conflit ci-dessus).
+2. **Luc** : `pac-man.py` lance `App(1600, 1040, "Pac-Man", config).run()` (aujourd'hui
+   il crée juste un `Game`) ; imports dans `main()` dans un `try` (pas de traceback si
+   un module manque), messages d'erreur clairs, `sys.exit(main())`.
+3. **Moi** : propriété `App.renderer` ; `App.save_score` revient au menu **même si**
+   `save_score` renvoie `False` (sinon bloqué sur l'écran de fin, sans message).
+4. **Moi** : `GameScreen` : `self._board = BoardView(app.renderer)` dans `__init__` ;
+   `ACTION_KEYS` (dict touche → action, remplace `DIRECTION_KEYS`, les touches de
+   test G / V et l'action `""` envoyée pour toute touche) ; `draw` = `BoardView` +
+   HUD (`Score`, `Lives`, `Level` = `current_level + 1`, `Time` = `int(level_timer)`) ;
+   corriger E225 (`=="defeat"`).
+5. Tester `python3 pac-man.py config.json` : menu → jeu → pause → fin → nom → menu.
+   Ensuite `spike_app.py` / `spike_board.py` deviennent inutiles (`App` demande une config).
+6. Recentrer les écrans pour 1600 × 1040 (`PAUSE_X`, `END_X`, `OPTIONS_X`… écrits pour
+   1440 × 960 → calculer depuis `renderer.width // 2`).
+
+### Branchement logique ↔ graphisme (conçu le 2 nov.)
 
 Le vrai `Game` marche maintenant seul : `Game(MazeLoader(Parser().check_file(
 "config.json")))` se crée sans erreur (testé le 2 nov., niveau 1 = 14 × 10, Pac-Man
@@ -164,11 +200,11 @@ src/graphical/
 │   ├── end.py          EndScreen (FAIT : game over / victoire + félicitations + saisie du nom)
 │   ├── highscores.py   HighscoresScreen (FAIT, version test : texte fixe)
 │   └── instructions.py InstructionsScreen (FAIT : contrôles, règles, triche, carte 4)
-├── fake_game.py        FakeGame : faux Game, ABANDONNÉ le 2 nov. (le vrai marche)
-├── board_view.py       BoardView : murs (FAIT, corrigés le 2 nov.), pacgums, Pac-Man, fantômes
-└── hud.py              draw_hud() : score, vies, niveau, temps, cheat actif
-src/highscores.py       HighscoreTable : charger / ajouter / top 10 / sauvegarder (JSON)
-assets/                 sprites PNG 32 × 32 (FAIT : 11 sprites arcade, 23 oct.)
+├── board_view.py       BoardView : murs, gums, Pac-Man, fantômes, glissement (FAIT, 4 nov.)
+└── (HUD)               dans GameScreen.draw (4 string_put), pas de fichier hud.py
+(fake_game.py, spike_fake_game.py, spike_renderer.py : supprimés le 4 nov.)
+(highscores : sauvegarde = MazeLoader.save_score de Luc ; il reste l'affichage top 10)
+assets/                 sprites PNG 44 × 44 (refaits le 4 nov., fond noir = « vide »)
 pacman.spec             PyInstaller (à la racine)
 ```
 
@@ -190,6 +226,14 @@ pacman.spec             PyInstaller (à la racine)
   `void *` de `mlx_new_image`. Les signatures du renderer utilisent `Image` ;
   `new_image` garde `pygame.Surface((w, h))` pour l'**appel** (création).
   Reste `self._images: dict[str, pygame.Surface]` (l. ~106) à passer en `Image`.
+- **Transparence à la MLX (4 nov.)** : `Pixels = list[tuple[int, int, int]]` ;
+  `opaque_pixels(image)` lit les pixels **une fois** (`get_at` = lire le buffer
+  `mlx_get_data_addr`) et garde les non noirs `(x, y, 0xRRGGBB)` (recollés avec
+  `(r << 16) | (g << 8) | b`, l'inverse de `to_rgb`) ; `put_pixels(pixels, x, y)` les
+  pose un par un (`mlx_pixel_put`). Le **noir = couleur « vide »** (aucun pixel noir
+  dans les personnages, sauf la bouche de Pac-Man qui doit laisser voir derrière).
+  Coût mesuré : 1,5 ms / frame pour 5 sprites (budget 16,7 ms). Les 2 lignes ajoutées
+  au tableau de la docstring.
 
 ## Mon `app.py` (carte 2 le 19 oct., machine à états le 21 oct.)
 
@@ -404,7 +448,45 @@ Plan en 4 étapes :
     avaient disparu → la fenêtre s'ouvre et se ferme (ou reste noire sans `present`).
   - d. (mis de côté) afficher le plateau dans `GameScreen` : voir « Branchement
     logique ↔ graphisme » dans Architecture.
-- **Étape B (expliquée le 2 nov., pas encore écrite)** : pacgums et super-pacgums.
+- **Carte 5 terminée le 4 nov.** (commits `96e4e6b`, `134de7a`, `9b4c1da`) — résumé :
+  - `CELL_SIZE = 50`, `SPRITE_SIZE = 44` (sprites **plus petits que la case** : marge
+    `(50 - 44) // 2 = 3` px > 2 px de mur qui débordent → aucun chevauchement, on garde
+    les sprites même si on change la case). Règles pour changer la taille : niveau 10
+    `23 × CELL ≤ largeur` et `80 + 19 × CELL ≤ hauteur` ; `CELL ≥ SPRITE + WALL_THICKNESS + 2`.
+  - `draw(renderer, level)` : murs, gums (`_put_centered(..., self._cell_pixel(pos))`,
+    `put_image`), fantômes puis Pac-Man (`_put_sprite(renderer, pixels,
+    self._entity_pixel(e))`, pixels non noirs via `put_pixels`).
+  - `_cell_pixel(pos)` (case → pixel), `_entity_pixel(entity)` (**interpolation** :
+    `t = min(elapsed / step_time, 1)`, position `prev_pos + (pos - prev_pos) × t`, `round`
+    à la fin), `_put_centered(renderer, image, size, pixel)` (gums),
+    `_put_sprite(renderer, pixels, pixel)` (marge `(CELL_SIZE - SPRITE_SIZE) // 2`).
+  - Pac-Man : `PACMAN_SPRITES` (dict direction → fichier), `direction or PACMAN_DEFAULT`
+    (`None` au départ → `"E"`) ; dict comprehension pour charger.
+  - Fantômes : `GHOST_SPRITES` (tuple, index = couleur), `waiting_time > 0` →
+    **pas dessiné** (choix d'Elhadj : il disparaît quand il est mangé) ; `weak` →
+    `ghost_edible.png` ; sinon sa couleur. `ghost_eaten.png` n'est plus utilisé.
+  - **Logique modifiée par Elhadj sur `graphic`** (accord : il prévient Luc), commit
+    `134de7a` : `Entity.prev_pos` (posé dans `__init__`, en 1re ligne de `move()`, dans
+    `respawn()`) ; propriété **`Entity.cell`** = `prev_pos` pendant la 1re moitié du pas,
+    `pos` ensuite (= la case **affichée**) ; `Game.eat()` et `Game.collision()` utilisent
+    `cell` ; `eat()` appelé **à chaque frame** dans `update()`. But : gums mangées et
+    collisions **au contact visible** (avant : dès le saut logique, une case trop tôt).
+    Vérifié par simulation (25 min de jeu, fin de niveau, fantôme mangé +200, vie perdue,
+    triche niveau) : aucune règle changée, seulement le moment (≤ un demi-pas plus tard).
+    Règle pour Luc : toute nouvelle règle de contact doit utiliser `cell`, pas `pos`.
+    Devrait aussi régler son bug de croisement Pac-Man / fantôme (`27f0f3d`).
+  - Essai abandonné : retarder visuellement la disparition des gums (`_seen` /
+    `_pending`) → remplacé par `cell`, plus simple. Vitesses essayées à 0,25 / 0,3 puis
+    remises à **0,55 (Pac-Man) / 0,75 (fantômes)** dans `level.py` (à rediscuter avec Luc :
+    l'arcade fait ~0,125 s par case).
+  - Sprites **44 × 44** refaits le 4 nov. par un script de génération (pixel par pixel,
+    hors dépôt car il utilise pygame : à déclarer dans « Resources » du README), mêmes
+    noms de fichiers.
+  - Bugs vus en chemin : `_update_gums` indenté **dans** la double boucle des murs (appelé
+    ~400 fois par frame) ; `def draw` à 8 espaces ; `self._offset` écrit deux fois au lieu
+    de `_offset_x` / `_offset_y` ; `SPRITE_SIZE` passé en trop à `_put_sprite` (mypy :
+    « Too many arguments »).
+- **Étape B (faite le 4 nov.)** : pacgums et super-pacgums.
   - Constantes `PACGUM_SIZE = 6`, `SUPERGUM_SIZE = 16`, `GUM_COLOR = 0xFFB8AE`.
   - `@staticmethod _new_dot(renderer, size)` : disque **pixel par pixel**
     (`draw.circle` interdit) : `(x - c)² + (y - c)² <= r²` avec `c = (size - 1) / 2`,
@@ -419,8 +501,8 @@ Plan en 4 étapes :
   `"N"`/`"E"`/`"S"`/`"W"`, `None` au départ → un sprite par défaut).
 - **Étape D** : fantômes (couleur par index 0-3 ; `ghost.weak` → `ghost_edible.png` ;
   état « mangé » à voir avec Luc).
-- `fake_game.py` / `spike_fake_game.py` : **abandonnés** (le vrai `Game` marche).
-  `spike_fake_game.py` plante toujours sur `level.height` ; à supprimer un jour.
+- `fake_game.py` / `spike_fake_game.py` / `spike_renderer.py` : **supprimés le 4 nov.**
+  (le vrai `Game` marche).
 
 ## Taille de la fenêtre et du texte (décidé le 21 oct.)
 
@@ -435,6 +517,13 @@ Plan en 4 étapes :
   cases de 32 px → **labyrinthe de 45 × 27 cases maximum** (cases max = plateau
   ÷ taille de case, division entière). Son plus grand niveau (23 × 19) rentre.
 - La taille de case (32 px) fixe la taille des sprites (carte 5) : un sprite = une taille.
+- **4 nov. : fenêtre 1600 × 1040, cases de 50 px, sprites de 44 px.** Plus grande
+  qu'avant mais rentre encore sur le MacBook Air (juste : passer à 1600 × 1030 si coupé).
+  Machines de 42 = grands iMac **sous Linux** ; taille d'écran à mesurer sur place :
+  `python3 -c "from src.graphical.renderer import Renderer; print(Renderer.get_screen_size())"`.
+  Agrandir la fenêtre n'agrandit pas le jeu : c'est `CELL_SIZE` qui fixe la taille du
+  plateau (pas de `transform.scale`). Si le plateau paraît petit sur un écran 4K :
+  cases de 64 + sprites 64 (fenêtre 2560 × 1440, ne rentre plus sur le Mac).
 - **2 nov. : l'écran qui compte = les machines de l'école** (évaluation), pas le Mac
   perso d'Elhadj. Le niveau 1 (14 × 10) ne faisait que 448 × 320 px avec des cases de
   32 → `CELL_SIZE` passé à **44** (voir carte 5) ; les sprites restent à refaire.
@@ -493,6 +582,36 @@ Plan en 4 étapes :
   `src/graphical` : aucune erreur.
 - `spike_board.py` **n'avait jamais été committé** (le commit `424c8c2` « spike test for
   board » ne contenait que `spike_renderer.py`) → réécrit et à ajouter (`git add`).
+
+### Mise à jour du 4 nov. (Mac)
+
+- Commits sur `graphic` (poussés) : `96e4e6b` (board : gums, sprites, glissement),
+  `134de7a` (logic : `prev_pos` + `cell`), `9b4c1da` (assets 44 px, sprites sans fond noir).
+- Supprimés en local (à committer) : `src/graphical/fake_game.py`, `spike_fake_game.py`,
+  `spike_renderer.py`. Restent `spike_app.py` et `spike_board.py` (inutiles après le
+  branchement).
+- ⚠️ Luc avait modifié **mon** `screens/game.py` sur `main` (`863ffab`, intitulé
+  « .gitignore ») puis l'a corrigé dans `26831e6` : c'est maintenant une base correcte
+  pour le branchement (voir Architecture). Ne plus utiliser la manip `git checkout graphic
+  -- src/graphical/screens/game.py` : on **prend** sa version et on la complète.
+- `text.txt` modifié en local (notes perso, message pour Luc) : **ne jamais l'ajouter**
+  (pas de `git add .` ni `commit -a`).
+- Mypy `--strict` sur `src/graphical` : importer `Level` / `Entity` (même sous
+  `TYPE_CHECKING`) fait vérifier le code de Luc → une erreur chez lui,
+  `entities.py:154` `dict` sans type (à lui signaler) ; `make lint` ne la voit pas.
+- **Commentaires** : Elhadj retire volontairement les commentaires `#` en recopiant le
+  code (décision du 4 nov.). Ne pas lui demander de les remettre. **À la fin du
+  projet** : une dernière explication complète de tout le code, puis suppression de tous
+  les commentaires `#` en gardant les docstrings (remplace la règle « le pourquoi va
+  dans des commentaires »).
+- Sujet relu le 4 nov. (pacman.pdf) : durée « comestible » non imposée (« *a short
+  time* » ; 12 s chez Luc, arcade 6 s) ; respawn « 5 or 10 seconds » (5 chez Luc ✅) ;
+  pacgums « *in most corridors* » (50 pour ~120 cases libres au niveau 1 = trop peu → à
+  dire à Luc) ; HUD obligatoire : score, vies, niveau, temps restant ; menu pause :
+  reprendre + retour au menu ; écran de fin : score + saisie du nom (+ félicitations en
+  victoire) ; README : sections Configuration, Highscore, Maze Generation,
+  Implementation, General Software Architecture, Project Management, Resources (usage
+  de l'IA) ; dossier de gestion de projet obligatoire.
 
 ## Notions vues (pour la soutenance)
 
@@ -564,6 +683,24 @@ Plan en 4 étapes :
 - **Paramètre ≠ retour** : on *passe* une `str` à `handle_action(action)` ; nos
   méthodes restent `-> None`. Taille de case max = `place // nombre de cases`
   (la dimension la plus serrée décide : `880 // 19 = 46`).
+- **Qui fait quoi** : la logique décide **où** sont les pacgums (`random.sample`, nombre
+  dans la config), le graphisme dessine **à quoi** ils ressemblent (`_new_dot`, disque
+  par Pythagore `(x - c)² + (y - c)² <= r²`) ; changer le nombre dans la config ne demande
+  **aucune** modification du dessin. `@staticmethod` (pas de `self`).
+- **Dessiner ≠ faire bouger** : sans `game.update(dt)` le temps n'avance pas (`tick` →
+  `move` jamais appelés) ; sans `handle_action` pas de direction. Fantômes invisibles
+  mais actifs → vies perdues, retour au centre.
+- **Interpolation** : logique en cases entières (pas de `step_time`), affichage entre
+  `prev_pos` et `pos` selon `t = elapsed / step_time` ; l'écran a un pas de retard →
+  la logique doit utiliser la case **affichée** (`cell`) pour les contacts. Propriété
+  `@property` (lue comme un attribut, recalculée à chaque lecture).
+- **Transparence sans transparence** : le noir = « vide », on ne pose que les pixels
+  colorés (préparés une fois) ; décalages de bits `<<` / `|` pour fabriquer `0xRRGGBB`.
+- `a or b` (valeur par défaut si `a` est `None`), dict / list comprehension,
+  `enumerate` (index + valeur), `continue` (saute un tour) ≠ `return` (quitte la
+  fonction), union de dicts `d1 | d2`, déballage `(x0, y0), (x1, y1) = a, b`.
+- Python remplit les paramètres **dans l'ordre** : un argument en trop décale tout
+  (mypy : « Too many arguments », « incompatible type »).
 
 ## Plan, étape par étape (lié aux cartes Trello jaunes)
 
@@ -574,28 +711,33 @@ Plan en 4 étapes :
 | 2b | Premier build de test | PyInstaller sur le mini-programme, tôt | à faire |
 | 3 | Machine à états des écrans | `Screen` + `App.change_screen()`, écrans vides | **fait** (21 oct.) : 7 états (saisie du nom dans `EndScreen`), routage |
 | 4 | Menu principal | Start, Highscores, Instructions, Exit | **fait** (21 oct.) : menu à curseur + écran Instructions complet |
-| 5 | Sprites et rendu du plateau | `assets/` + `BoardView` avec le vrai `Game` | **en cours** : sprites 32 px (23 oct., à refaire en 44), murs corrigés + `CELL_SIZE = 44` (2 nov.) ; reste étapes B (gums), C (Pac-Man), D (fantômes) |
-| 6 | HUD + Menu pause | `draw_hud()`, `PauseScreen` (reprendre / retour au menu) | pause **faite** (22 oct., curseur + partie figée) ; HUD à faire |
+| 5 | Sprites et rendu du plateau | `assets/` + `BoardView` avec le vrai `Game` | **fait** (4 nov.) : murs, gums, Pac-Man orienté, fantômes (normal / faible / mangé = invisible), glissement, sprites 44 sans fond, cases 50 |
+| 6 | HUD + Menu pause | HUD dans `GameScreen.draw`, `PauseScreen` | pause **faite** (22 oct.) ; HUD = partie du branchement |
 | 7 | Game Over / Victoire + saisie du nom | max 10 caractères, alphanumérique + espaces, effacement | **fait** (23 oct.) ; sauvegarde → carte 8 |
 | 8 | Highscores | JSON robuste (absent / corrompu), top 10 trié, affichés dans le menu | à faire |
 | 9 | Packaging final | `pacman.spec`, assets inclus, Itch.io | à faire |
-| — | Intégration | brancher le vrai `Game` dans `App` / `GameScreen` | conçue le 2 nov. (voir Architecture), mise de côté |
+| — | Intégration | brancher le vrai `Game` dans `App` / `GameScreen` | **commencée par Luc** (`26831e6` sur `logic`, 3 nov.) ; reste : merge, `pac-man.py`, `BoardView` + HUD dans `GameScreen` (voir Architecture) |
+| — | Fin de projet | explication complète du code, puis suppression des commentaires `#` (docstrings gardées) | à faire en dernier |
 
 Dates Trello (2026) : rendu final le 7 nov. Sprites 16 oct, machine à états 17 oct,
 menu 20 oct, HUD 21 oct, pause 22 oct, fin + saisie 24 oct, premier build 24 oct,
 highscores 27-28 oct, packaging 31 oct.
 
-Prochaine étape (2 nov. soir) : committer les murs + `spike_board.py`, puis **étape B**
-(gums, code déjà expliqué, voir carte 5), puis C (Pac-Man) et D (fantômes), puis
-**refaire les sprites en 44 × 44**, puis le branchement `App` / `GameScreen` et le
-**HUD**, puis 2b (premier build). Il reste 5 jours (rendu le 7 nov.) et les cartes
-8 (highscores) et 9 (packaging) ne sont pas commencées.
-Questions en suspens posées à Elhadj :
-- avec `CELL_SIZE = 44`, à quel x se pose le mur E de la case (3, 2) et de quel pixel
-  à quel pixel va-t-il en largeur ? (frontière, `half`, résultat) ;
-- pourquoi `renderer.clear()` à chaque tour alors que le labyrinthe ne bouge pas ?
-- à la frame où la partie se termine, quel écran est dessiné (jeu ou fin) ?
-- le fond noir d'une super-pacgum peut-il effacer un mur ?
+Prochaine étape (4 nov.) : **le branchement**, avec Luc (étapes 1 à 6 dans
+« Branchement : état au 4 nov. », section Architecture) : merge `origin/logic`,
+`pac-man.py` (Luc), `App.renderer` + `save_score` (moi), `GameScreen` avec `BoardView` +
+HUD (moi), test complet, recentrage des écrans pour 1600 × 1040. Puis **highscores**
+(top 10 affiché dans le menu / `HighscoresScreen`, la sauvegarde existe chez Luc), puis
+**packaging** PyInstaller + Itch.io (chemin `assets/` à rendre indépendant du dossier
+courant), puis README + dossier de gestion de projet (avec Luc), puis l'explication
+finale + suppression des commentaires. **Rendu le 7 nov.** (il reste 3 jours).
+Questions en suspens posées à Elhadj (sans réponse) :
+- pourquoi `cell` renvoie `prev_pos` pendant la **première** moitié du pas ?
+- pourquoi lire les pixels des sprites dans `__init__` et pas à chaque frame ?
+- dans `GameScreen.update`, pourquoi tester `result` **après** `game.update(dt)` ?
+- pourquoi `start_game()` crée un nouveau `Game` alors que la pause réutilise le même
+  `GameScreen` ?
+- avec `CELL_SIZE = 50` et `SPRITE_SIZE = 44`, combien de pixels entre un fantôme et le mur ?
 Ouvrir la PR `graphic` → `main` quand je le décide (manip CLAUDE.md + spikes).
 Envoyer à Luc la taille de fenêtre / le nombre de cases max.
 À chaque nouvelle carte : annoncer son nom et ses sous-tâches (`pacman.json`) avant de coder.
@@ -712,4 +854,6 @@ flake8 src && mypy src --strict    # vérifier avant chaque commit
 deactivate
 ```
 Plus tard (quand la PR de Luc est dans main) : `make install`, `make run`, `make lint` (uv).
-Ne jamais committer : `.venv/`, `__pycache__/`, `.mypy_cache/`, `spike_*.py`.
+Ne jamais committer : `.venv/`, `__pycache__/`, `.mypy_cache/`, `text.txt` (notes perso).
+Les `spike_*.py` et `CLAUDE.md` sont suivis sur `graphic` mais retirés (`git rm --cached`)
+avant chaque PR vers `main`, puis re-suivis après la fusion.

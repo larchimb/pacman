@@ -1,20 +1,20 @@
 """Board of the game: walls, gums, Pac-Man and ghosts."""
 from typing import TYPE_CHECKING
 
-from src.graphical.renderer import Image, Renderer
+from src.graphical.renderer import Image, Pixels, Renderer
 
 if TYPE_CHECKING:
     from src.logical.level import Level
     from src.logical.entities import Entity
 
-CELL_SIZE: int = 44
+CELL_SIZE: int = 50
 # Thickness of a wall bar in pixels.
 WALL_THICKNESS: int = 4
 WALL_COLOR: int = 0x2121DE
-PACGUM_SIZE: int = 6
-SUPERGUM_SIZE: int = 16
+PACGUM_SIZE: int = 10
+SUPERGUM_SIZE: int = 20
 GUM_COLOR: int = 0xFFB8AE
-SPRITE_SIZE: int = 32
+SPRITE_SIZE: int = 44
 ASSETS_DIR: str = "assets"
 # Sprite of Pac-Man for each direction of the logic (Entity.DIRECTIONS).
 PACMAN_SPRITES: dict[str, str] = {
@@ -61,16 +61,18 @@ class BoardView:
         self._offset_y: int = 0
         self._pacgum: Image = self._new_dot(renderer, PACGUM_SIZE)
         self._supergum: Image = self._new_dot(renderer, SUPERGUM_SIZE)
-        self._pacman: dict[str, Image] = {
-            direction: renderer.load_image(f"{ASSETS_DIR}/{name}")
+        self._pacman: dict[str, Pixels] = {
+            direction: renderer.opaque_pixels(
+                renderer.load_image(f"{ASSETS_DIR}/{name}")
+            )
             for direction, name in PACMAN_SPRITES.items()
         }
-        self._ghosts: list[Image] = [
-            renderer.load_image(f"{ASSETS_DIR}/{name}")
+        self._ghosts: list[Pixels] = [
+            renderer.opaque_pixels(renderer.load_image(f"{ASSETS_DIR}/{name}"))
             for name in GHOST_SPRITES
         ]
-        self._ghost_weak: Image = renderer.load_image(
-            f"{ASSETS_DIR}/{GHOST_WEAK_SPRITE}"
+        self._ghost_weak: Pixels = renderer.opaque_pixels(
+            renderer.load_image(f"{ASSETS_DIR}/{GHOST_WEAK_SPRITE}")
         )
 
     def draw(self, renderer: Renderer, level: "Level") -> None:
@@ -94,19 +96,18 @@ class BoardView:
             self._put_centered(
                 renderer, self._supergum, SUPERGUM_SIZE, self._cell_pixel(pos)
             )
+        pacman = level.pacman
+        direction = pacman.direction or PACMAN_DEFAULT
+        self._put_sprite(
+            renderer, self._pacman[direction], self._entity_pixel(pacman)
+        )
         for index, ghost in enumerate(level.ghosts):
             if ghost.waiting_time > 0:
                 continue
             image = self._ghost_weak if ghost.weak else self._ghosts[index]
-            self._put_centered(
-                renderer, image, SPRITE_SIZE, self._entity_pixel(ghost)
+            self._put_sprite(
+                renderer, image, self._entity_pixel(ghost)
             )
-        pacman = level.pacman
-        direction = pacman.direction or PACMAN_DEFAULT
-        self._put_centered(
-            renderer, self._pacman[direction], SPRITE_SIZE,
-            self._entity_pixel(pacman),
-        )
 
     def _cell_pixel(self, pos: tuple[int, int]) -> tuple[int, int]:
         """Return the top-left pixel of the cell at pos."""
@@ -135,6 +136,14 @@ class BoardView:
         px, py = pixel
         margin = (CELL_SIZE - size) // 2
         renderer.put_image(image, px + margin, py + margin)
+
+    def _put_sprite(
+        self, renderer: Renderer, pixels: Pixels, pixel: tuple[int, int]
+    ) -> None:
+        """Draw a sprite's colored pixels in the middle of the cell."""
+        px, py = pixel
+        margin = (CELL_SIZE - SPRITE_SIZE) // 2
+        renderer.put_pixels(pixels, px + margin, py + margin)
 
     def _draw_cell(
         self, renderer: Renderer, cell: int, px: int, py: int

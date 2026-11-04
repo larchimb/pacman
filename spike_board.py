@@ -9,7 +9,7 @@ from src.logical.mazeloader import MazeLoader
 from src.logical.parser import Parser
 
 # Same window size as the real game.
-renderer = Renderer(1440, 960, "Test board")
+renderer = Renderer(1600, 1040, "Test board")
 # Created once, before the loop: BoardView builds its wall images
 # in __init__, and Game generates every maze when it is created.
 board = BoardView(renderer)

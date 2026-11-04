@@ -16,6 +16,7 @@ from src.logical.mazeloader import MazeLoader
 # Number of frames per second, and duration of one frame in seconds.
 FPS: int = 60
 FRAME_TIME: float = 1.0 / FPS
+CHAR_SIZE = 15
 
 
 class App:
@@ -34,7 +35,7 @@ class App:
         self.config = config
         self.width = width
         self.height = height
-        self.character = 15
+        self.character = CHAR_SIZE
 
     @property
     def renderer(self) -> Renderer:

@@ -31,3 +31,8 @@ class Screen:
             height,
             0x888888,
             "Escape: back to menu")
+
+    @staticmethod
+    def _center_x(renderer: Renderer, text: str) -> int:
+        """Return the x where the text must start to be centered."""
+        return (renderer.width - renderer.text_width(text)) // 2

@@ -33,22 +33,16 @@ from dataclasses import dataclass
 
 import pygame
 
-# Type of an image, so other files can annotate images without
-# importing pygame (like the void * returned by mlx_new_image).
 Image = pygame.Surface
 Pixels = list[tuple[int, int, int]]
 
-# Size of the text drawn by string_put. MLX only has one fixed font,
-# so we never change it.
 FONT_SIZE: int = 32
+CHAR_WIDTH: int = 12
 
 QUIT: str = "quit"
 KEY_DOWN: str = "key_down"
 KEY_UP: str = "key_up"
 
-# Special keys translated to simple names. Letters and digits are
-# translated directly (their pygame code is their ASCII code, like the
-# X11 keysyms received by MLX).
 _SPECIAL_KEYS: dict[int, str] = {
     pygame.K_UP: "up",
     pygame.K_DOWN: "down",
@@ -95,8 +89,6 @@ class Renderer:
     def __init__(self, width: int, height: int, title: str) -> None:
         """Open the game window (mlx_init + mlx_new_window)."""
         try:
-            # Only display and text: pygame.init() would also start the
-            # sound system, which MLX does not have.
             pygame.display.init()
             pygame.font.init()
             self._window = pygame.display.set_mode((width, height))
@@ -115,6 +107,10 @@ class Renderer:
         pygame.display.init()
         info = pygame.display.Info()
         return (info.current_w, info.current_h)
+
+    def text_width(self, text: str) -> int:
+        """Return the width of a text in pixels (fixed-width font)."""
+        return len(text) * CHAR_WIDTH
 
     def new_image(self, width: int, height: int) -> Image:
         """Create a black image in memory (mlx_new_image)."""
@@ -140,8 +136,6 @@ class Renderer:
 
     def opaque_pixels(self, image: Image) -> Pixels:
         """Return the non-black pixels of an image (read its buffer)."""
-        # MLX has no transparency: black is used as the "empty" color,
-        # so only the other pixels will be drawn.
         pixels: Pixels = []
         for y in range(image.get_height()):
             for x in range(image.get_width()):

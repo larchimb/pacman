@@ -8,16 +8,19 @@ from src.graphical.screens.screen import Screen
 if TYPE_CHECKING:
     from src.graphical.app import App
 
-# Colors (MLX format 0xRRGGBB).
 TITLE_COLOR: int = 0xFFFF00
 SELECTED_COLOR: int = 0xFFFF00
 NORMAL_COLOR: int = 0xFFFFFF
 HELP_COLOR: int = 0x888888
 
-# Position of the pause menu, around the center of the 1440 x 960 window.
-PAUSE_X: int = 620
-PAUSE_Y: int = 380
+
 LINE_HEIGHT: int = 50
+BOX_WIDTH: int = 300
+BOX_HEIGHT: int = 280
+BOX_PADDING: int = 60
+BOX_COLOR: int = 0x000000
+FRAME_COLOR: int = 0x2121DE
+FRAME_THICKNESS: int = 4
 
 
 class PauseScreen(Screen):
@@ -32,6 +35,14 @@ class PauseScreen(Screen):
             ("Main menu", app.show_menu)
         ]
         self._selected: int = 0
+        self._frame = app.renderer.new_filled_image(
+            BOX_WIDTH + 2 * FRAME_THICKNESS,
+            BOX_HEIGHT + 2 * FRAME_THICKNESS,
+            FRAME_COLOR
+        )
+        self._box = app.renderer.new_filled_image(
+            BOX_WIDTH, BOX_HEIGHT, BOX_COLOR
+        )
 
     def _resume(self) -> None:
         """Go back to the paused game, unchanged."""
@@ -57,6 +68,13 @@ class PauseScreen(Screen):
         self._game.draw(renderer)
         width = int(self._app.width / 2 - 100)
         height = int(self._app.height / 2 - 100)
+        box_x = width - BOX_PADDING
+        box_y = height - BOX_PADDING
+        renderer.put_image(
+            self._frame, box_x - FRAME_THICKNESS, box_y - FRAME_THICKNESS
+        )
+        renderer.put_image(self._box, box_x, box_y)
+
         renderer.string_put(width, height, TITLE_COLOR, "PAUSE")
         for index, (text, _) in enumerate(self._options):
             y = height + (index + 1) * LINE_HEIGHT
@@ -64,5 +82,3 @@ class PauseScreen(Screen):
                 renderer.string_put(width, y, SELECTED_COLOR, "> " + text)
             else:
                 renderer.string_put(width, y, NORMAL_COLOR, "  " + text)
-        help_y = height + (len(self._options) + 1) * LINE_HEIGHT + 20
-        renderer.string_put(width, help_y, HELP_COLOR, "Space: resume")

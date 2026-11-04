@@ -10,14 +10,12 @@ if TYPE_CHECKING:
 
 MAX_NAME_LENGTH: int = 10
 
-# Colors (MLX format 0xRRGGBB).
 WIN_COLOR: int = 0x00FF00
 LOSE_COLOR: int = 0xFF0000
 TEXT_COLOR: int = 0xFFFFFF
 NAME_COLOR: int = 0xFFFF00
 HELP_COLOR: int = 0x888888
 
-# Position of the first line and space between two lines, in pixels.
 END_X: int = 480
 END_Y: int = 300
 LINE_HEIGHT: int = 50

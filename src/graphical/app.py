@@ -13,7 +13,6 @@ from src.logical.game import Game
 from src.logical.mazeloader import MazeLoader
 
 
-# Number of frames per second, and duration of one frame in seconds.
 FPS: int = 60
 FRAME_TIME: float = 1.0 / FPS
 CHAR_SIZE = 15
@@ -30,7 +29,6 @@ class App:
         """Open the window."""
         self._renderer = Renderer(width, height, title)
         self._running: bool = False
-        # The screen currently shown; it receives keys and draws itself.
         self._screen: Screen = MenuScreen(self)
         self.config = config
         self.width = width
@@ -88,7 +86,6 @@ class App:
         try:
             while self._running:
                 start = time.monotonic()
-                # Time since the previous frame (about FRAME_TIME).
                 dt = start - last
                 last = start
 
@@ -96,12 +93,10 @@ class App:
                 self._screen.update(dt)
                 self._draw()
 
-                # Sleep what is left of the frame to keep a fixed rate.
                 elapsed = time.monotonic() - start
                 if elapsed < FRAME_TIME:
                     time.sleep(FRAME_TIME - elapsed)
         finally:
-            # Always close the window, even if an error happened.
             self._renderer.close()
 
     def _handle_events(self) -> None:

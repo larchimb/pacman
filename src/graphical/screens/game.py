@@ -1,4 +1,4 @@
-"""Game screen: the board and the HUD (empty for now)."""
+"""Game screen: the board and the HUD."""
 
 from typing import TYPE_CHECKING
 
@@ -18,7 +18,7 @@ DIRECTION_KEYS: dict[str, str] = {
     "right": "right", "d": "right",
 }
 
-CELL_SIZE: int = 50
+CELL_SIZE: int = 52
 # Thickness of a wall bar in pixels.
 WALL_THICKNESS: int = 4
 WALL_COLOR: int = 0x2121DE
@@ -42,6 +42,9 @@ GHOST_SPRITES: tuple[str, ...] = (
 GHOST_WEAK_SPRITE: str = "ghost_edible.png"
 
 HUD_HEIGHT: int = 80
+HUD_COLOR: int = 0xFFFFFF
+HUD_Y: int = 28
+HUD_MARGIN: int = 40
 
 # Bit of each wall in a cell (same values as Entity.DIRECTIONS).
 NORTH: int = 1
@@ -155,6 +158,7 @@ class GameScreen(Screen):
             self._put_sprite(
                 image, self._entity_pixel(ghost)
             )
+        self._draw_hud(renderer)
 
     def _cell_pixel(self, pos: tuple[int, int]) -> tuple[int, int]:
         """Return the top-left pixel of the cell at pos."""
@@ -227,3 +231,17 @@ class GameScreen(Screen):
                 if (x - center) ** 2 + (y - center) ** 2 <= radius ** 2:
                     renderer.image_pixel_put(image, x, y, GUM_COLOR)
         return image
+
+    def _draw_hud(self, renderer: Renderer) -> None:
+        """Draw the score, the lives, the level and the time left."""
+        time_left = max(0, int(self.game.level_timer))
+        texts = (
+            f"Score: {self.game.score}",
+            f"Lives: {self.game.lives}",
+            f"Level: {self.game.current_level + 1}",
+            f"Time: {time_left}",
+        )
+        column = renderer.width // len(texts)
+        for index, text in enumerate(texts):
+            x = HUD_MARGIN + index * column
+            renderer.string_put(x, HUD_Y, HUD_COLOR, text)

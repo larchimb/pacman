@@ -4,7 +4,6 @@ from .entities import PacMan
 from mazegenerator import MazeGenerator
 import random
 from typing import Literal
-import json
 
 
 class Game():
@@ -20,7 +19,6 @@ class Game():
         self.current_level = 0
         self.score = 0
         self.lives = config.datas["lives"]
-        self.paused = False
         self.result: Literal["victory", "defeat"] | None = None
         self.set_level_timer()
         self.cheating_mode = False
@@ -78,7 +76,7 @@ class Game():
 
     def eat(self) -> None:
         '''Eat the gum under Pac-Man, score it and apply its effect'''
-        eaten = self.level.eat(self.level.pacman.pos)
+        eaten = self.level.eat(self.level.pacman.cell)
         if eaten:
             self.score += self.config.datas[f"points_per_{eaten}"]
             if self.level.is_cleared():
@@ -150,11 +148,7 @@ class Game():
 
     def handle_action(self, action: str) -> None:
         '''Apply an action asked by the player'''
-        if action == "pause":
-            self.paused = not self.paused
-        elif self.paused:
-            return
-        elif action in PacMan.KEYS:
+        if action in PacMan.KEYS:
             self.level.pacman.set_next_direction(action)
         elif action == "cheat":
             self.cheating_mode = not self.cheating_mode
@@ -164,7 +158,7 @@ class Game():
     def collision(self) -> None:
         '''To deal with collision between Pacman and a ghost'''
         for g in self.level.ghosts:
-            if self.level.pacman.pos == g.pos:
+            if self.level.pacman.cell == g.cell:
                 if g.waiting_time > 0:
                     continue
                 elif g.weak:
@@ -182,7 +176,7 @@ class Game():
 
     def update(self, dt: float) -> None:
         '''One step of the game'''
-        if self.paused or self.result:
+        if self.result:
             return
         self.update_level_timer(dt)
         if self.supertime:
@@ -190,32 +184,12 @@ class Game():
         level = self.level
         pacman = level.pacman
         ghosts = level.ghosts
-        prev_pacman = pacman.pos
         pacman.tick(dt)
-        if not prev_pacman == pacman.pos:
-            self.eat()
-            if self.level is not level:
-                return
+        self.eat()
+        if self.level is not level:
+            return
         self.collision()
         if not self.frozen:
             for ghost in ghosts:
                 ghost.tick(dt)
                 self.collision()
-
-    def save_score(self, name: str) -> bool:
-        '''Add the score to the highscores and save the top 10'''
-        name = name.strip()
-        if not MazeLoader.is_valid_entry(name, self.score):
-            return False
-        highscores = self.config.datas["highscore"]
-        highscores.append({"name": name, "score": self.score})
-        self.config.datas["highscore"] = MazeLoader.top_ten(highscores)
-        path = self.config.path_to_highscore
-        try:
-            with open(path, "w", encoding="utf-8") as f:
-                json.dump({"highscores": self.config.datas["highscore"]},
-                          f, indent=2)
-        except OSError as e:
-            print(f"[SAVE ERROR]: cannot write '{path}': {e}")
-            return False
-        return True

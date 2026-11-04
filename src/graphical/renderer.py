@@ -22,6 +22,8 @@ pygame.font.Font(None) + render      mlx_string_put()
 pygame.display.flip()                mlx_do_sync()
 pygame.event.get()                   mlx_hook() / mlx_loop_hook()
 pygame.quit()                        mlx_destroy_window() + mlx_release()
+Surface.get_at() on an image         read the mlx_get_data_addr() buffer
+put_pixels (set_at on the window)    mlx_pixel_put() for each pixel
 Image = pygame.Surface → (type of mlx image, void *)
 
 Colors are given as 0xRRGGBB integers, exactly like in MLX.
@@ -34,6 +36,7 @@ import pygame
 # Type of an image, so other files can annotate images without
 # importing pygame (like the void * returned by mlx_new_image).
 Image = pygame.Surface
+Pixels = list[tuple[int, int, int]]
 
 # Size of the text drawn by string_put. MLX only has one fixed font,
 # so we never change it.
@@ -134,6 +137,23 @@ class Renderer:
         """Write one pixel in an image (mlx_get_data_addr buffer)."""
         if 0 <= x < image.get_width() and 0 <= y < image.get_height():
             image.set_at((x, y), to_rgb(color))
+
+    def opaque_pixels(self, image: Image) -> Pixels:
+        """Return the non-black pixels of an image (read its buffer)."""
+        # MLX has no transparency: black is used as the "empty" color,
+        # so only the other pixels will be drawn.
+        pixels: Pixels = []
+        for y in range(image.get_height()):
+            for x in range(image.get_width()):
+                r, g, b, _ = image.get_at((x, y))
+                if (r, g, b) != (0, 0, 0):
+                    pixels.append((x, y, (r << 16) | (g << 8) | b))
+        return pixels
+
+    def put_pixels(self, pixels: Pixels, x: int, y: int) -> None:
+        """Draw pixels in the window from (x, y) (mlx_pixel_put each)."""
+        for px, py, color in pixels:
+            self._window.set_at((x + px, y + py), to_rgb(color))
 
     def load_image(self, path: str) -> Image:
         """Load a PNG file as an image (mlx_png_file_to_image)."""

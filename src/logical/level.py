@@ -24,7 +24,9 @@ class Level():
         self.ghosts: list[Ghost] = [
             Hunter(self._maze, (0, 0), GHOST_SPEED),
             Tricky(self._maze, (self._width - 1, 0), GHOST_SPEED),
-            Randomly(self._maze, (self._width - 1, self._height - 1), GHOST_SPEED),
+            Randomly(
+                self._maze, (self._width - 1, self._height - 1), GHOST_SPEED
+            ),
             Scary(self._maze, (0, self._height - 1), GHOST_SPEED)
         ]
         for ghost in self.ghosts:

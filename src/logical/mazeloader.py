@@ -3,6 +3,20 @@ from .parser import Parser, ParsingError
 import json
 
 
+WIDTH_MIN = 14
+WIDTH_MAX = 37
+HEIGHT_MIN = 10
+HEIGHT_MAX = 25
+LIFE_MIN = 3
+LIFE_MAX = 99
+TIME_MIN = 60
+TIME_MAX = 800
+PACGUM_MIN = 20
+PACGUM_MAX = 10000
+INT_MIN_GAME = 10
+INT_MAX_GAME = 10000
+
+
 class MazeLoader():
     '''A class with all the parameters and the default value'''
     def __init__(self,
@@ -23,18 +37,14 @@ class MazeLoader():
             [22, 18],
             [23, 19]
          ],
-         "lives": 3,
-         "pacgum": 1000,
+         "lives": LIFE_MIN,
+         "pacgum": PACGUM_MAX,
          "points_per_pacgum": 10,
          "points_per_supergum": 50,
          "points_per_ghost": 200,
-         "seed": 42,
+         "seed": 41,
          "level_max_time": 90
         }
-        self.width_min = 14
-        self.width_max = 23
-        self.height_min = 10
-        self.height_max = 19
         self.get_values()
 
     def get_highscores(self) -> list[dict[str, int]]:
@@ -158,14 +168,14 @@ class MazeLoader():
                 print(f"[VALUE ERROR]: level {i + 1}, no height, "
                       "the default's height value is applied")
                 height = default_height
-            if not self.is_valid_int(width, self.width_min, self.width_max):
+            if not self.is_valid_int(width, WIDTH_MIN, WIDTH_MAX):
                 print(f"[VALUE ERROR]: level {i + 1}, '{width}' isn't good "
-                      f"({self.width_min} <= value <= {self.width_max}), "
+                      f"({WIDTH_MIN} <= value <= {WIDTH_MAX}), "
                       "the default's width value is applied")
                 width = default_width
-            if not self.is_valid_int(height, self.height_min, self.height_max):
+            if not self.is_valid_int(height, HEIGHT_MIN, HEIGHT_MAX):
                 print(f"[VALUE ERROR]: level {i + 1}, '{height}' isn't good "
-                      f"({self.height_min} <= value <= {self.height_max}), "
+                      f"({HEIGHT_MIN} <= value <= {HEIGHT_MAX}), "
                       "the default's height value is applied")
                 height = default_height
             checked_levels.append([width, height])
@@ -174,7 +184,7 @@ class MazeLoader():
     def get_lives(self, setting: str) -> None:
         '''To check lives number'''
         value = self.raw_data.get(setting)
-        if not self.is_valid_int(value, 3, 99):
+        if not self.is_valid_int(value, LIFE_MIN, LIFE_MAX):
             print(f"[VALUE ERROR]: '{setting}' isn't good "
                   f"3 <= {setting} <= 99, the default one is applied")
         else:
@@ -183,7 +193,7 @@ class MazeLoader():
     def get_max_time(self, setting: str) -> None:
         '''To check max time per level'''
         value = self.raw_data.get(setting)
-        if not self.is_valid_int(value, 60, 600):
+        if not self.is_valid_int(value, TIME_MIN, TIME_MAX):
             print(f"[VALUE ERROR]: '{setting}' isn't good "
                   f"60 <= {setting} <= 600, the default one is applied")
         else:
@@ -192,7 +202,7 @@ class MazeLoader():
     def get_pacgum(self, setting: str) -> None:
         '''To check pacgum per level'''
         value = self.raw_data.get(setting)
-        if not self.is_valid_int(value, 20, 10000):
+        if not self.is_valid_int(value, PACGUM_MIN, PACGUM_MAX):
             print(f"[VALUE ERROR]: '{setting}' isn't good "
                   f"10 <= {setting} , the default one is applied")
         else:
@@ -213,7 +223,7 @@ class MazeLoader():
                 self.datas[setting] = self.get_levels()
             else:
                 value = self.raw_data.get(setting)
-                if not self.is_valid_int(value, 10, 10000):
+                if not self.is_valid_int(value, INT_MIN_GAME, INT_MAX_GAME):
                     print("[VALUE ERROR]: no value / negativ value for "
                           f"{setting}, the default one is choosen")
                 else:

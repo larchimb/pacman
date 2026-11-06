@@ -30,7 +30,7 @@ class Parser():
         except OSError as e:
             raise ParsingError(f"cannot read '{path}': {e}") from e
         raw_data = Parser.delete_comments(text)
-        return Parser.check_json_format(raw_data)
+        return Parser.check_json_format(raw_data, path)
 
     @staticmethod
     def delete_comments(raw_text: str) -> str:
@@ -46,12 +46,12 @@ class Parser():
         return raw_data
 
     @staticmethod
-    def check_json_format(raw_data: str) -> dict[str, Any]:
+    def check_json_format(raw_data: str, path: str) -> dict[str, Any]:
         '''To check if it is a valid JSON with a dict'''
         try:
             data = json.loads(raw_data)
         except json.JSONDecodeError as e:
-            raise ParsingError(f"invalid JSON: {e}") from e
+            raise ParsingError(f"invalid JSON for '{path}': {e}") from e
         if not isinstance(data, dict):
             raise ParsingError("format must be a dict object")
         return data

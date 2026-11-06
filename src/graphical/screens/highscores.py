@@ -27,8 +27,11 @@ class HighscoresScreen(Screen):
         try:
             with open(self._app.config.path_to_highscore) as f:
                 file = json.load(f)
-                scores = sorted(file["highscores"],
-                key=lambda entry: entry["score"], reverse=True)[:10]
+                scores = sorted(
+                    file["highscores"],
+                    key=lambda entry: entry["score"],
+                    reverse=True
+                )[:10]
         except Exception:
             scores = None
         if not scores:

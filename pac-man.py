@@ -7,11 +7,11 @@ import sys
 def main() -> None:
     '''Entry point of the programm'''
     av = sys.argv
-    if not len(av) == 2:
-        raise Exception("[ERROR]: You must have 1 argument for this programm")
+    # if not len(av) == 2:
+    #     raise Exception("[ERROR]: You must have 1 argument for this programm")
     try:
         raw = Parser.check_file(av[1])
-    except ParsingError as e:
+    except Exception as e:
         print(f"{e}, the default config is used")
         raw = {}
     config = MazeLoader(raw)

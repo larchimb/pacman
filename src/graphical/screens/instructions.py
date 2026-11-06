@@ -41,7 +41,7 @@ class InstructionsScreen(Screen):
 
     def draw(self, renderer: Renderer) -> None:
         """Draw the instructions as a block centered in the window."""
-        lines = INSTRUCTIONS + (TEXT_COLOR, "")
+        lines = INSTRUCTIONS + ((TEXT_COLOR, ""),)
         widest = max(renderer.text_width(text) for _, text in lines)
         left = (renderer.width - widest) // 2
         top = (renderer.height - len(lines) * LINE_HEIGHT) // 2

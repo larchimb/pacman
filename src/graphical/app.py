@@ -52,9 +52,11 @@ class App:
         """Go to the main menu."""
         self.change_screen(MenuScreen(self))
 
-    def show_highscores(self) -> None:
+    def show_highscores(
+            self, player: tuple[str, int] | None = None
+    ) -> None:
         """Go to the highscores screen."""
-        self.change_screen(HighscoresScreen(self))
+        self.change_screen(HighscoresScreen(self, player))
 
     def show_instructions(self) -> None:
         """Go to the instructions screen."""
@@ -75,8 +77,9 @@ class App:
 
     def save_score(self, name: str, score: int) -> None:
         """Save the score of the player, then go back to the menu."""
-        registered = self.config.save_score(name, score)
-        if registered:
+        if self.config.save_score(name, score):
+            self.show_highscores((name.strip(), score))
+        else:
             self.show_menu()
 
     def run(self) -> None:

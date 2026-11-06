@@ -80,7 +80,9 @@ class GameScreen(Screen):
             for direction, name in PACMAN_SPRITES.items()
         }
         self._ghosts: list[Pixels] = [
-            self.renderer.opaque_pixels(self.renderer.load_image(f"{ASSETS_DIR}/{name}"))
+            self.renderer.opaque_pixels(self.renderer.load_image(
+                f"{ASSETS_DIR}/{name}")
+            )
             for name in GHOST_SPRITES
         ]
         self._ghost_weak: Pixels = self.renderer.opaque_pixels(

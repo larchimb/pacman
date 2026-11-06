@@ -14,8 +14,11 @@ debug:
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	rm -rf .mypy_cache
+	rm -r build/ dist/ pac-man.spec
 # 	rm -rf .venv
 
+build:
+	uv run pyinstaller pac-man.py
 lint:
 	uv run flake8 .
 	uv run mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs

@@ -64,7 +64,9 @@ class Game():
 
     def set_level_timer(self) -> None:
         '''Define the starting time for each level'''
-        self.level_timer = self.config.datas["level_max_time"]
+        self.level_timer = (
+            self.config.datas["level_max_time"] + 10 * self.current_level
+            )
 
     def update_level_timer(self, dt: float) -> None:
         '''Time before the end of the level'''

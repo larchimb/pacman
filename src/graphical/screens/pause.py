@@ -16,8 +16,8 @@ HELP_COLOR: int = 0x888888
 
 LINE_HEIGHT: int = 50
 BOX_WIDTH: int = 300
-BOX_HEIGHT: int = 280
-BOX_PADDING: int = 60
+BOX_HEIGHT: int = 260
+BOX_PADDING: int = 40
 BOX_COLOR: int = 0x000000
 FRAME_COLOR: int = 0x2121DE
 FRAME_THICKNESS: int = 4
@@ -64,21 +64,25 @@ class PauseScreen(Screen):
             self._resume()
 
     def draw(self, renderer: Renderer) -> None:
-        """Draw the frozen game, then the pause menu on top of it."""
+        """Draw the frozen game, then the pause menu centered on top."""
         self._game.draw(renderer)
-        width = int(self._app.width / 2 - 100)
-        height = int(self._app.height / 2 - 100)
-        box_x = width - BOX_PADDING
-        box_y = height - BOX_PADDING
+        box_x = (renderer.width - BOX_WIDTH) // 2
+        box_y = (renderer.height - BOX_HEIGHT) // 2
         renderer.put_image(
             self._frame, box_x - FRAME_THICKNESS, box_y - FRAME_THICKNESS
         )
         renderer.put_image(self._box, box_x, box_y)
-
-        renderer.string_put(width, height, TITLE_COLOR, "PAUSE")
+        top = box_y + BOX_PADDING
+        renderer.string_put(
+            self._center_x(renderer, "PAUSE"), top, TITLE_COLOR, "PAUSE"
+        )
         for index, (text, _) in enumerate(self._options):
-            y = height + (index + 1) * LINE_HEIGHT
+            x = self._center_x(renderer, text)
+            y = top + (index + 1) * LINE_HEIGHT
             if index == self._selected:
-                renderer.string_put(width, y, SELECTED_COLOR, "> " + text)
+                arrow_x = x - renderer.text_width("> ")
+                renderer.string_put(arrow_x, y, SELECTED_COLOR, "> ")
+                renderer.string_put(x, y, SELECTED_COLOR, text)
             else:
-                renderer.string_put(width, y, NORMAL_COLOR, "  " + text)
+                renderer.string_put(x, y, NORMAL_COLOR, text)
+

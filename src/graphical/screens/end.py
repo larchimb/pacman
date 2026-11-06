@@ -2,7 +2,8 @@
 
 from typing import TYPE_CHECKING
 
-from src.graphical.renderer import KEY_DOWN, InputEvent, Renderer
+from src.graphical.renderer import KEY_DOWN, InputEvent, Renderer, Image
+from src.graphical.pixel_font import new_pixel_image, pixel_rows
 from src.graphical.screens.screen import Screen
 
 if TYPE_CHECKING:
@@ -15,9 +16,7 @@ LOSE_COLOR: int = 0xFF0000
 TEXT_COLOR: int = 0xFFFFFF
 NAME_COLOR: int = 0xFFFF00
 HELP_COLOR: int = 0x888888
-
-END_X: int = 480
-END_Y: int = 300
+TITLE_BLOCK: int = 10
 LINE_HEIGHT: int = 50
 
 
@@ -31,6 +30,12 @@ class EndScreen(Screen):
         self._score = score
         self._name: str = ""
         self._shift: bool = False
+        text, color = ("VICTORY", WIN_COLOR) if won else (
+            "GAME OVER", LOSE_COLOR)
+        self._title_rows = pixel_rows(text)
+        self._title: Image = new_pixel_image(
+            app.renderer, self._title_rows, color, TITLE_BLOCK
+        )
 
     def handle_event(self, event: InputEvent) -> None:
         """Type the name, Enter to save it, Escape to skip."""
@@ -62,26 +67,33 @@ class EndScreen(Screen):
             self._app.save_score(name, self._score)
 
     def draw(self, renderer: Renderer) -> None:
-        """Draw the result, the score and the name being typed."""
-        if self._won:
-            renderer.string_put(END_X, END_Y, WIN_COLOR, "VICTORY")
-            renderer.string_put(
-                END_X, END_Y + LINE_HEIGHT, TEXT_COLOR,
-                "Congratulations, you cleared every level!"
-            )
-        else:
-            renderer.string_put(END_X, END_Y, LOSE_COLOR, "GAME OVER")
-
-        y = END_Y + 2 * LINE_HEIGHT
-        renderer.string_put(
-            END_X, y + LINE_HEIGHT, TEXT_COLOR, "Enter your name:"
+        """Draw the big title, the score and the name, centered."""
+        title_width = len(self._title_rows[0]) * TITLE_BLOCK
+        title_height = len(self._title_rows) * TITLE_BLOCK
+        message = (
+            "Congratulations, you cleared every level!" if self._won else ""
         )
-
         cursor = "_" if len(self._name) < MAX_NAME_LENGTH else ""
-        renderer.string_put(
-            END_X, y + 2 * LINE_HEIGHT, NAME_COLOR, self._name + cursor
+        lines: list[tuple[int, str]] = [
+            (TEXT_COLOR, message),
+            (TEXT_COLOR, f"Score: {self._score}"),
+            (TEXT_COLOR, ""),
+            (TEXT_COLOR, "Enter your name:"),
+            (NAME_COLOR, self._name + cursor),
+            (TEXT_COLOR, "")
+        ]
+        block_height = title_height + (len(lines) + 1) * LINE_HEIGHT
+        top = (renderer.height - block_height) // 2
+        renderer.put_image(
+            self._title, (renderer.width - title_width) // 2, top
         )
-        renderer.string_put(
-            END_X, y + 3 * LINE_HEIGHT + 20, HELP_COLOR,
-            "Enter: save    Escape: skip"
-        )
+        lines_top = top + title_height + LINE_HEIGHT
+        for index, (color, text) in enumerate(lines):
+            if text:
+                renderer.string_put(
+                    self._center_x(renderer, text),
+                    lines_top + index * LINE_HEIGHT,
+                    color,
+                    text,
+                )
+        super().draw(renderer)

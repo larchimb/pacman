@@ -1,6 +1,7 @@
 from typing import Any
 from .parser import Parser, ParsingError
 import json
+import os
 
 
 WIDTH_MIN = 14
@@ -15,6 +16,7 @@ PACGUM_MIN = 20
 PACGUM_MAX = 10000
 INT_MIN_GAME = 10
 INT_MAX_GAME = 10000
+BACK_UP_HIGHSCORE = ".back_up.json"
 
 
 class MazeLoader():
@@ -47,23 +49,42 @@ class MazeLoader():
         }
         self.get_values()
 
-    def get_highscores(self) -> list[dict[str, int]]:
-        '''Obtain the highscores from the file'''
-        try:
-            path = self.raw_data.get("highscore_filename")
-            if not path:
-                raise ParsingError("no file for highscore")
-            datas = Parser.check_file(path)
+    def load_highscore_file(self, path: str) -> list[dict[str, Any]] | None:
+        '''Load one highscore file and check if it's possible to exploit it'''
+        if not os.path.exists(path):
+            if not os.path.isdir(os.path.dirname(path) or "."):
+                print(f"[PARSING ERROR]: folder of '{path}' not found")
+                return None
+            print(f"[INFO]: '{path}' not found, it will be created")
             self.path_to_highscore = path
-            return self.check_highscores(datas)
-        except ParsingError as e:
-            print(f"{e}, the default one is choosen")
-        path = self.datas["highscore"]
+            return []
         try:
             datas = Parser.check_file(path)
-            return self.check_highscores(datas)
         except ParsingError as e:
-            print(f"{e}, a new highscore file is created")
+            print(e)
+            return None
+        if not isinstance(datas.get("highscores"), list):
+            print(f"[VALUE ERROR]: 'highscores' in '{path}' must be a list")
+            return None
+        self.path_to_highscore = path
+        return self.check_highscores(datas)
+
+    def get_highscores(self) -> list[dict[str, Any]]:
+        '''Obtain the highscores: config file, then default, then backup'''
+        path = self.raw_data.get("highscore_filename")
+        if not isinstance(path, str) or not path:
+            print("[VALUE ERROR]: no valid 'highscore_filename', "
+                  "the default one is choosen")
+            path = None
+        for candidate in (path, self.datas["highscore"], BACK_UP_HIGHSCORE):
+            if candidate is None:
+                continue
+            scores = self.load_highscore_file(candidate)
+            if scores is not None:
+                return scores
+        print(f"[INFO]: no usable highscore file, '{BACK_UP_HIGHSCORE}' "
+              "will be overwritten")
+        self.path_to_highscore = BACK_UP_HIGHSCORE
         return []
 
     def save_score(self, name: str, score: int) -> bool:
@@ -116,8 +137,6 @@ class MazeLoader():
         '''Keep only the valid highscores, sorted, top 10'''
         entries = datas.get("highscores")
         if not isinstance(entries, list):
-            print("[VALUE ERROR]: 'highscores' must be a list, "
-                  "starting with an empty highscore list")
             return []
         valid: list[dict[str, Any]] = []
         for entry in entries:

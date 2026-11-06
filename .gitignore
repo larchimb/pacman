@@ -3,4 +3,4 @@ pacman.json
 .venv/
 __pycache__/
 .mypy_cache/
-.DS_Store
+.back_up.json

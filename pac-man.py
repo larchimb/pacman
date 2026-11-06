@@ -1,4 +1,4 @@
-from src.logical.parser import Parser
+from src.logical.parser import Parser, ParsingError
 from src.logical.mazeloader import MazeLoader
 from src.graphical.app import App
 import sys
@@ -9,7 +9,12 @@ def main() -> None:
     av = sys.argv
     if not len(av) == 2:
         raise Exception("[ERROR]: You must have 1 argument for this programm")
-    config = MazeLoader(Parser.check_file(av[1]))
+    try:
+        raw = Parser.check_file(av[1])
+    except ParsingError as e:
+        print(f"{e}, the default config is used")
+        raw = {}
+    config = MazeLoader(raw)
     launch = App(2048, 1450, "Pac-Man", config)
     launch.run()
 

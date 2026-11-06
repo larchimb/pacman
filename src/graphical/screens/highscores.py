@@ -29,7 +29,7 @@ class HighscoresScreen(Screen):
                 file = json.load(f)
                 scores = sorted(file["highscores"],
                 key=lambda entry: entry["score"], reverse=True)[:10]
-        except Exception as e:
+        except Exception:
             scores = None
         if not scores:
             renderer.string_put(

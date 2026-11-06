@@ -76,8 +76,9 @@ class MazeLoader():
             print("[VALUE ERROR]: no valid 'highscore_filename', "
                   "the default one is choosen")
             path = None
-        for candidate in (path, self.datas["highscore"], BACK_UP_HIGHSCORE):
-            if candidate is None:
+        for i, candidate in enumerate(
+            (path, self.datas["highscore"], BACK_UP_HIGHSCORE)):
+            if candidate is None or (i == 0 and candidate == path):
                 continue
             scores = self.load_highscore_file(candidate)
             if scores is not None:

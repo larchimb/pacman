@@ -5,8 +5,6 @@ from src.graphical.screens.screen import Screen
 
 TITLE_COLOR: int = 0xFFFF00
 TEXT_COLOR: int = 0xFFFFFF
-HELP_COLOR: int = 0x888888
-
 LINE_HEIGHT: int = 34
 
 INSTRUCTIONS: tuple[tuple[int, str], ...] = (
@@ -41,6 +39,7 @@ class InstructionsScreen(Screen):
 
     def draw(self, renderer: Renderer) -> None:
         """Draw the instructions as a block centered in the window."""
+        self._draw_background(renderer)
         lines = INSTRUCTIONS + ((TEXT_COLOR, ""),)
         widest = max(renderer.text_width(text) for _, text in lines)
         left = (renderer.width - widest) // 2

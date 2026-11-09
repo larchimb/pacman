@@ -8,6 +8,8 @@ from src.graphical.renderer import InputEvent, Renderer
 if TYPE_CHECKING:
     from src.graphical.app import App
 
+BACKGROUND: str = "assets/background.png"
+
 
 class Screen:
     """One state of the game: reacts to keys, updates, draws itself."""
@@ -31,6 +33,10 @@ class Screen:
             height,
             0x888888,
             "Escape: back to menu")
+
+    def _draw_background(self, renderer: Renderer) -> None:
+        """Draw the background image, made for the fixed window size."""
+        renderer.put_image(renderer.load_image(BACKGROUND), 0, 0)
 
     @staticmethod
     def _center_x(renderer: Renderer, text: str) -> int:

@@ -1,4 +1,4 @@
-"""End screen: game over or victory, then the player types a name"""
+"""End screen: game over or victory, then the player types a name."""
 
 from typing import TYPE_CHECKING
 
@@ -68,6 +68,7 @@ class EndScreen(Screen):
 
     def draw(self, renderer: Renderer) -> None:
         """Draw the big title, the score and the name, centered."""
+        self._draw_background(renderer)
         title_width = len(self._title_rows[0]) * TITLE_BLOCK
         title_height = len(self._title_rows) * TITLE_BLOCK
         message = (

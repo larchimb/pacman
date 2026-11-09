@@ -44,6 +44,7 @@ class HighscoresScreen(Screen):
 
     def draw(self, renderer: Renderer) -> None:
         """Draw the title and the table centered, then the help line."""
+        self._draw_background(renderer)
         rows = max(len(self._scores), 1)
         missing = self._player is not None and self._highlight is None
         total = rows + 2 + (2 if missing else 0)

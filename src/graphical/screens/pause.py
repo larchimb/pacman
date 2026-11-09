@@ -85,4 +85,3 @@ class PauseScreen(Screen):
                 renderer.string_put(x, y, SELECTED_COLOR, text)
             else:
                 renderer.string_put(x, y, NORMAL_COLOR, text)
-

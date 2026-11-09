@@ -2,6 +2,7 @@ from typing import Any
 from .parser import Parser, ParsingError
 import json
 import os
+from ..paths import user_path
 
 
 WIDTH_MIN = 14
@@ -16,7 +17,7 @@ PACGUM_MIN = 20
 PACGUM_MAX = 10000
 INT_MIN_GAME = 10
 INT_MAX_GAME = 10000
-BACK_UP_HIGHSCORE = ".back_up.json"
+BACK_UP_HIGHSCORE = user_path(".back_up.json")
 
 
 class MazeLoader():
@@ -24,9 +25,9 @@ class MazeLoader():
     def __init__(self,
                  data: dict[str, Any]) -> None:
         self.raw_data = data
-        self.path_to_highscore: str = ".highscores.json"
+        self.path_to_highscore: str = user_path(".highscores.json")
         self.datas: dict[str, Any] = {
-         "highscore": ".highscores.json",
+         "highscore": user_path(".highscores.json"),
          "levels": [
             [14, 10],
             [15, 11],
@@ -77,7 +78,7 @@ class MazeLoader():
                   "the default one is choosen")
             path = None
         for i, candidate in enumerate(
-            (path, self.datas["highscore"], BACK_UP_HIGHSCORE)):
+             (path, self.datas["highscore"], BACK_UP_HIGHSCORE)):
             if candidate is None or (i == 0 and candidate == path):
                 continue
             scores = self.load_highscore_file(candidate)

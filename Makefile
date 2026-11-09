@@ -23,6 +23,7 @@ clean_all: clean
 
 build:
 	uv run pyinstaller pac-man.spec
+	cp config.json dist/pac-man/
 	zip -r $(ZIP) dist/pac-man
 
 lint:

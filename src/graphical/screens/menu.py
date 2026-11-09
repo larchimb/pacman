@@ -13,11 +13,6 @@ if TYPE_CHECKING:
 TITLE_COLOR: int = 0xFFFF00
 SELECTED_COLOR: int = 0xFFFF00
 NORMAL_COLOR: int = 0xFFFFFF
-HELP_COLOR: int = 0x888888
-
-
-OPTIONS_X: int = 40
-OPTIONS_Y: int = 140
 LINE_HEIGHT: int = 50
 
 TITLE_PIXELS: tuple[str, ...] = (
@@ -82,6 +77,7 @@ class MenuScreen(Screen):
 
     def draw(self, renderer: Renderer) -> None:
         """Draw the big title and the options centered in the window."""
+        self._draw_background(renderer)
         title_width = len(TITLE_PIXELS[0]) * TITLE_BLOCK
         title_height = len(TITLE_PIXELS) * TITLE_BLOCK
         block_height = title_height + (len(self._options) + 1) * LINE_HEIGHT

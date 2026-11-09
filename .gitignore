@@ -4,3 +4,6 @@ pacman.json
 __pycache__/
 .mypy_cache/
 .back_up.json
+build/
+dist/
+pacman.zip

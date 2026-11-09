@@ -56,11 +56,10 @@ class GameScreen(Screen):
     """Screen shown while playing."""
 
     def __init__(self, app: "App", game: Game) -> None:
-        """Start with no direction asked yet."""
+        """Create the images of the board once."""
         super().__init__(app)
-        self._direction: str = "none"
         self.game = game
-        self.renderer = app._renderer
+        self.renderer = app.renderer
         self._h_wall: Image = self.renderer.new_filled_image(
             CELL_SIZE + WALL_THICKNESS, WALL_THICKNESS, WALL_COLOR
         )
@@ -114,7 +113,7 @@ class GameScreen(Screen):
         self.game.handle_action(action)
 
     def update(self, dt: float) -> None:
-        '''The main loop for animation'''
+        """Advance the game by dt seconds, then check its end."""
         self.game.update(dt)
         if self.game.result == "victory":
             self._app.end_game(True, self.game.score)
@@ -123,7 +122,7 @@ class GameScreen(Screen):
 
     def draw(self, renderer: Renderer) -> None:
         """Draw the walls, then the gums, centered under the HUD."""
-        level = self.game.levels[self.game.current_level]
+        level = self.game.level
         maze = level._maze
         width = len(maze[0])
         height = len(maze)
@@ -156,20 +155,16 @@ class GameScreen(Screen):
                 image, self._entity_pixel(ghost)
             )
         if self.game.cheating_mode:
-            renderer.string_put(
-                650,
-                self._app.height - 50,
-                0xFFFFFF,
-                "Cheat code : ON   1: Invincible   2: Freeze   3: Extra Life  "
-                " 4: Speed   5: Level Up"
-                )
+            cheat = ("Cheat mode: ON   1: Invincible   2: Freeze   "
+                     "3: Extra life   4: Speed   5: Next level")
         else:
-            renderer.string_put(
-                650,
-                self._app.height - 50,
-                0xFFFFFF,
-                "Cheat code : OFF"
-                )
+            cheat = "Cheat mode: OFF   (press C)"
+        renderer.string_put(
+            self._center_x(renderer, cheat),
+            renderer.height - 50,
+            HUD_COLOR,
+            cheat,
+        )
         self._draw_hud(self.renderer)
 
     def _cell_pixel(self, pos: tuple[int, int]) -> tuple[int, int]:

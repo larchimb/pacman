@@ -1,3 +1,6 @@
+"""Entry point of the game: load the config and open the window."""
+
+
 def main() -> None:
     '''Entry point of the programm'''
     from src.logical.parser import Parser, ParsingError

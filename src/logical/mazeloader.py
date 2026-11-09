@@ -1,3 +1,5 @@
+"""Config checks, default values, highscores loading and saving."""
+
 from typing import Any
 from .parser import Parser, ParsingError
 import json
@@ -24,6 +26,7 @@ class MazeLoader():
     '''A class with all the parameters and the default value'''
     def __init__(self,
                  data: dict[str, Any]) -> None:
+        """Start from the default values, then check the config."""
         self.raw_data = data
         self.path_to_highscore: str = user_path(".highscores.json")
         self.datas: dict[str, Any] = {

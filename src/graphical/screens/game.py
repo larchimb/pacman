@@ -8,6 +8,7 @@ from src.graphical.renderer import (
 from src.graphical.screens.screen import Screen
 from src.logical.game import Game
 from src.logical.entities import Entity
+from src.paths import resource_path
 if TYPE_CHECKING:
     from src.graphical.app import App
 
@@ -26,7 +27,7 @@ PACGUM_SIZE: int = 10
 SUPERGUM_SIZE: int = 20
 GUM_COLOR: int = 0xFFB8AE
 SPRITE_SIZE: int = 44
-ASSETS_DIR: str = "assets"
+ASSETS_DIR: str = resource_path("assets")
 PACMAN_SPRITES: dict[str, str] = {
     "N": "pacman_up.png",
     "E": "pacman_right.png",
@@ -117,7 +118,7 @@ class GameScreen(Screen):
         self.game.update(dt)
         if self.game.result == "victory":
             self._app.end_game(True, self.game.score)
-        elif self.game.result =="defeat":
+        elif self.game.result == "defeat":
             self._app.end_game(False, self.game.score)
 
     def draw(self, renderer: Renderer) -> None:

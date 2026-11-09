@@ -46,6 +46,3 @@ coll = COLLECT(
     name='pac-man',
 )
 
-datas = [
-
-]

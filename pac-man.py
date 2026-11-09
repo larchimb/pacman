@@ -4,13 +4,12 @@ def main() -> None:
     from src.logical.mazeloader import MazeLoader
     from src.graphical.app import App
     import sys
+    from src.paths import config_path
 
-    av = sys.argv
-    # if not len(av) == 2:
-    #     raise Exception("[ERROR]: You must have 1 argument for this programm")
+    path = config_path(sys.argv)
     try:
-        raw = Parser.check_file(av[1])
-    except Exception as e:
+        raw = Parser.check_file(path)
+    except ParsingError as e:
         print(f"{e}, the default config is used")
         raw = {}
     config = MazeLoader(raw)

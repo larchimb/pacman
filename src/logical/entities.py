@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from random import randint
 from collections import deque
+from typing import Any
 
 
 class Entity():
@@ -151,7 +152,7 @@ class Ghost(Entity, ABC):
             (0, 1, 4, 'S'), (-1, 0, 8, 'W')
             ]   # dx, dy, wall code, letter
         start = self.pos
-        prev: dict = {start: None}
+        prev: dict[Any, Any] = {start: None}
         queue = deque([start])
         while queue:
             x, y = queue.popleft()

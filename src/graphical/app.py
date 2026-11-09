@@ -55,7 +55,7 @@ class App:
     def show_highscores(
             self, player: tuple[str, int] | None = None
     ) -> None:
-        """Go to the highscores screen."""
+        """Go to the highscores, the player's score highlighted."""
         self.change_screen(HighscoresScreen(self, player))
 
     def show_instructions(self) -> None:
@@ -76,7 +76,7 @@ class App:
         self.change_screen(EndScreen(self, won, score))
 
     def save_score(self, name: str, score: int) -> None:
-        """Save the score of the player, then go back to the menu."""
+        """Save the score, then show the highscores (menu if it fails)."""
         if self.config.save_score(name, score):
             self.show_highscores((name.strip(), score))
         else:

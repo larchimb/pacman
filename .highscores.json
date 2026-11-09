@@ -1,36 +1,48 @@
 {
-  "highscores": [
-    {
-      "name": "Elhadj",
-      "score": 3000
-    },
-    {
-      "name": "Luc",
-      "score": 200
-    },
-    {
-      "name": "test",
-      "score": 200
-    },
-    {
-      "name": "tocard",
-      "score": 50
-    },
-    {
-      "name": "test",
-      "score": 0
-    },
-    {
-      "name": "nico",
-      "score": 0
-    },
-    {
-      "name": "lol",
-      "score": 0
-    },
-    {
-      "name": "elhadj",
-      "score": 0
-    }
-  ]
+    "highscores": [
+        {
+            "name": "louko",
+            "score": 4690
+        },
+        {
+            "name": "Elhadj",
+            "score": 3000
+        },
+        {
+            "name": "test",
+            "score": 2190
+        },
+        {
+            "name": "Louko",
+            "score": 360
+        },
+        {
+            "name": "lol",
+            "score": 210
+        },
+        {
+            "name": "Luc",
+            "score": 200
+        },
+        {
+            "name": "test",
+            "score": 200
+        },
+        {
+            "name": "tocard",
+            "score": 50
+        },
+        {
+            "name": "test",
+            "score": 0
+        },
+        {
+            "name": "nico",
+            "score": 0
+        },
+        {
+            "name": "nico2",
+            "score": 20
+        }
+    ]
 }

@@ -1,11 +1,10 @@
-from src.logical.parser import Parser, ParsingError
-from src.logical.mazeloader import MazeLoader
-from src.graphical.app import App
-import sys
-
-
 def main() -> None:
     '''Entry point of the programm'''
+    from src.logical.parser import Parser, ParsingError
+    from src.logical.mazeloader import MazeLoader
+    from src.graphical.app import App
+    import sys
+
     av = sys.argv
     # if not len(av) == 2:
     #     raise Exception("[ERROR]: You must have 1 argument for this programm")

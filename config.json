@@ -1,22 +1,52 @@
 {
-  "highscore_filename": ".highscores.json",
-  "levels": [
-    [14, 10],
-    [15, 11],
-    [16, 12],
-    [17, 13],
-    [18, 14],
-    [19, 15],
-    [20, 16],
-    [21, 17],
-    [22, 18],
-    [23, 19]
+    "highscore_filename": ".highscores.json",
+    "levels": [
+        [
+            14,
+            10
+        ],
+        [
+            15,
+            11
+        ],
+        [
+            16,
+            12
+        ],
+        [
+            17,
+            13
+        ],
+        [
+            18,
+            14
+        ],
+        [
+            19,
+            15
+        ],
+        [
+            20,
+            16
+        ],
+        [
+            21,
+            17
+        ],
+        [
+            22,
+            18
+        ],
+        [
+            23,
+            19
+        ]
     ],
-  "lives": 3,
-  "pacgum": 10,
-  "points_per_pacgum": 10,
-  "points_per_supergum": 50,
-  "points_per_ghost": 200,
-  "seed": 42,
-  "level_max_time": 80
+    "lives": 3,
+    "pacgum": 42,
+    "points_per_pacgum": 10,
+    "points_per_supergum": 50,
+    "points_per_ghost": 200,
+    "seed": 42,
+    "level_max_time": 80
 }

@@ -77,7 +77,8 @@ class MazeLoader():
                   "the default one is choosen")
             path = None
         for i, candidate in enumerate(
-            (path, self.datas["highscore"], BACK_UP_HIGHSCORE)):
+            (path, self.datas["highscore"], BACK_UP_HIGHSCORE)
+        ):
             if candidate is None or (i == 0 and candidate == path):
                 continue
             scores = self.load_highscore_file(candidate)

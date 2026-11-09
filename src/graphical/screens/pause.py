@@ -11,8 +11,6 @@ if TYPE_CHECKING:
 TITLE_COLOR: int = 0xFFFF00
 SELECTED_COLOR: int = 0xFFFF00
 NORMAL_COLOR: int = 0xFFFFFF
-HELP_COLOR: int = 0x888888
-
 
 LINE_HEIGHT: int = 50
 BOX_WIDTH: int = 300
@@ -85,4 +83,3 @@ class PauseScreen(Screen):
                 renderer.string_put(x, y, SELECTED_COLOR, text)
             else:
                 renderer.string_put(x, y, NORMAL_COLOR, text)
-

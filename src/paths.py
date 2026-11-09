@@ -1,3 +1,5 @@
+"""Paths of the files shipped with the game and of the files it writes."""
+
 import os
 import sys
 

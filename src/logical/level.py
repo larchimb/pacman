@@ -1,3 +1,5 @@
+"""One level: maze grid, Pac-Man, ghosts and gums."""
+
 from .mazeloader import MazeLoader
 from mazegenerator import MazeGenerator
 from .entities import PacMan, Ghost, Hunter, Tricky, Randomly, Scary
@@ -12,6 +14,7 @@ class Level():
     def __init__(self, config: MazeLoader,
                  maze: MazeGenerator,
                  ran_gen: random.Random) -> None:
+        """Place Pac-Man, the ghosts and the gums in the maze."""
         self._maze: list[list[int]] = maze.maze
         self._rng = ran_gen
         self._width = len(self._maze[0])

@@ -1,3 +1,5 @@
+"""Read a JSON config file, removing the # comments."""
+
 import json
 from typing import Any
 
@@ -5,9 +7,11 @@ from typing import Any
 class ParsingError(Exception):
     '''Contain all errors due to the parsing'''
     def __init__(self, message: str) -> None:
+        """Keep the error message."""
         super().__init__(message)
 
     def __str__(self) -> str:
+        """Return the message with the [PARSING ERROR] prefix."""
         return f"[PARSING ERROR]: {super().__str__()}"
 
 

@@ -1,3 +1,5 @@
+"""Pac-Man and the ghosts: movement, ghost AI and shortest paths."""
+
 from abc import ABC, abstractmethod
 from random import randint
 from collections import deque
@@ -11,6 +13,7 @@ class Entity():
 
     def __init__(self, maze: list[list[int]],
                  start: tuple[int, int], step_time: float) -> None:
+        """Place the entity on its start cell with its speed."""
         self.maze = maze
         self.start = start
         self.pos = start
@@ -59,11 +62,12 @@ class Entity():
 
 
 class PacMan(Entity):
-    '''Class for Pacman's entity'''
+    """Class for Pacman's entity"""
     KEYS = {"up", "down", "left", "right"}
 
     def __init__(self, maze: list[list[int]],
                  start: tuple[int, int], step_time: float) -> None:
+        """Create Pac-Man, not invincible at the start."""
         super().__init__(maze, start, step_time)
         self.invincible = False
 
@@ -90,6 +94,7 @@ class Ghost(Entity, ABC):
     '''Class for ghost's entities'''
     def __init__(self, maze: list[list[int]],
                  start: tuple[int, int], step_time: float) -> None:
+        """Create a ghost, not edible and not waiting."""
         super().__init__(maze, start, step_time)
         self.weak = False
         self.shortest_path: str | None = None
@@ -229,6 +234,7 @@ class Scary(Ghost):
     '''The scary class is for the ghost who hunt and flee the Pacman'''
     def __init__(self, maze: list[list[int]],
                  start: tuple[int, int], step_time: float) -> None:
+        """Create the shy ghost, chasing at the start."""
         super().__init__(maze, start, step_time)
         self.way_back = False
 

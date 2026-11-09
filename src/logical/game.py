@@ -1,3 +1,5 @@
+"""State and rules of a whole game: levels, score, lives, timer, cheats."""
+
 from .mazeloader import MazeLoader
 from .level import Level
 from .entities import PacMan
@@ -17,6 +19,7 @@ class Game():
         }
 
     def __init__(self, config: MazeLoader) -> None:
+        """Generate all the levels and start at level 1."""
         self.config = config
         self.rng = random.Random()
         self.levels = self.level_generator()

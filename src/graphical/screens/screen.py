@@ -4,11 +4,12 @@
 from typing import TYPE_CHECKING
 
 from src.graphical.renderer import InputEvent, Renderer
+from src.paths import resource_path
 
 if TYPE_CHECKING:
     from src.graphical.app import App
 
-BACKGROUND: str = "assets/background.png"
+BACKGROUND: str = resource_path("assets/background.png")
 
 
 class Screen:

@@ -1,5 +1,3 @@
-pacman.pdf
-pacman.json
 .venv/
 __pycache__/
 .mypy_cache/

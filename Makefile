@@ -22,9 +22,10 @@ clean_all: clean
 	rm -f $(ZIP)
 
 build:
+	rm -f $(ZIP)
 	uv run pyinstaller pac-man.spec
 	cp config.json dist/pac-man/
-	zip -r $(ZIP) dist/pac-man
+	cd dist && zip -r ../$(ZIP) pac-man
 
 lint:
 	uv run flake8 .

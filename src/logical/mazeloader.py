@@ -211,12 +211,21 @@ class MazeLoader():
             checked_levels.append([width, height])
         return checked_levels
 
+    def warn_invalid(self, setting: str, minimum: int, maximum: int) -> None:
+        '''Say if a setting is missing or out of range, default applied'''
+        if setting not in self.raw_data:
+            print(f"[VALUE ERROR]: '{setting}' is missing, "
+                  "the default one is applied")
+        else:
+            print(f"[VALUE ERROR]: '{setting}' isn't good "
+                  f"({minimum} <= {setting} <= {maximum}), "
+                  "the default one is applied")
+
     def get_lives(self, setting: str) -> None:
         '''To check lives number'''
         value = self.raw_data.get(setting)
         if not self.is_valid_int(value, LIFE_MIN, LIFE_MAX):
-            print(f"[VALUE ERROR]: '{setting}' isn't good "
-                  f"3 <= {setting} <= 99, the default one is applied")
+            self.warn_invalid(setting, LIFE_MIN, LIFE_MAX)
         else:
             self.datas[setting] = value
 
@@ -224,8 +233,7 @@ class MazeLoader():
         '''To check max time per level'''
         value = self.raw_data.get(setting)
         if not self.is_valid_int(value, TIME_MIN, TIME_MAX):
-            print(f"[VALUE ERROR]: '{setting}' isn't good "
-                  f"60 <= {setting} <= 600, the default one is applied")
+            self.warn_invalid(setting, TIME_MIN, TIME_MAX)
         else:
             self.datas[setting] = value
 
@@ -233,8 +241,7 @@ class MazeLoader():
         '''To check pacgum per level'''
         value = self.raw_data.get(setting)
         if not self.is_valid_int(value, PACGUM_MIN, PACGUM_MAX):
-            print(f"[VALUE ERROR]: '{setting}' isn't good "
-                  f"10 <= {setting} , the default one is applied")
+            self.warn_invalid(setting, PACGUM_MIN, PACGUM_MAX)
         else:
             self.datas[setting] = value
 
@@ -254,7 +261,6 @@ class MazeLoader():
             else:
                 value = self.raw_data.get(setting)
                 if not self.is_valid_int(value, INT_MIN_GAME, INT_MAX_GAME):
-                    print("[VALUE ERROR]: no value / negativ value for "
-                          f"{setting}, the default one is choosen")
+                    self.warn_invalid(setting, INT_MIN_GAME, INT_MAX_GAME)
                 else:
                     self.datas[setting] = value

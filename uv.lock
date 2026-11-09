@@ -335,26 +335,26 @@ source = { virtual = "." }
 dependencies = [
     { name = "mazegenerator" },
     { name = "pygame" },
-    { name = "pyinstaller" },
 ]
 
 [package.dev-dependencies]
 dev = [
     { name = "flake8" },
     { name = "mypy" },
+    { name = "pyinstaller" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "mazegenerator", path = "mazegenerator-2.1.0-py3-none-any.whl" },
     { name = "pygame" },
-    { name = "pyinstaller" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "flake8", specifier = ">=7.4.1" },
     { name = "mypy", specifier = ">=2.3.1" },
+    { name = "pyinstaller" },
 ]
 
 [[package]]

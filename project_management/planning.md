@@ -63,5 +63,6 @@ Owner: the login of the person in charge (both logins = shared card).
   executable) only appeared then and was fixed on 9 Nov.
 - **Quality and documentation moved to the end.** Lint, README and this folder were
   finished after the planned submission date.
+- **Bugs management.** Instead of fixing bugs directly, add a card on trello
+  to list all bugs and following their fixes.
 
-TODO (larchimb): add what you would plan differently next time.

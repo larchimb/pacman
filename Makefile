@@ -1,5 +1,6 @@
 ARG ?= config.json
 ZIP = pacman.zip
+HIDE = PYGAME_HIDE_SUPPORT_PROMPT=1
 
 .PHONY: install run debug clean clean_all build lint lint-strict
 
@@ -7,10 +8,10 @@ install:
 	uv sync
 
 run:
-	uv run python pac-man.py $(ARG)
+	$(HIDE) uv run python pac-man.py $(ARG)
 
 debug:
-	uv run python -m pdb pac-man.py $(ARG)
+	$(HIDE) uv run python -m pdb pac-man.py $(ARG)
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
@@ -25,6 +26,7 @@ build:
 	rm -f $(ZIP)
 	uv run pyinstaller pac-man.spec
 	cp config.json dist/pac-man/
+	cp README.txt dist/pac-man/
 	cd dist && zip -r ../$(ZIP) pac-man
 
 lint:

@@ -30,7 +30,10 @@ that shows who owns it: **yellow** = elbarry (graphics), **blue** = larchimb (lo
 | File | Content |
 |---|---|
 | [trello_export.json](trello_export.json) | Raw JSON export of the Trello board (cards, checklists, dates, history) |
-| `trello_board.png` | Screenshot of the board |
+| `trello_board_start.png` | Screenshot of the board at the start |
+| `trello_board.png` | Screenshot of the board during the project |
+| `Diagram.drawio` | File of the final diagram |
+| `Diagram.png` | Screeenshot of the final diagram |
 | [planning.md](planning.md) | Planned timeline vs actual progress |
 | [team.md](team.md) | Who did what, how we decided, Git workflow |
 | [risks.md](risks.md) | Risk analysis and mitigation |

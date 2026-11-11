@@ -1,0 +1,285 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="K1ZpBTUD0LyAYLxiUHT3">
+    <mxGraphModel dx="2571" dy="3166" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" background="light-dark(#FFFFFF,#FFFFFF)" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;align=left;verticalAlign=middle;fontSize=26;" value="&lt;b&gt;Pac-Man (42) — Software Architecture&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:13px&quot;&gt;repo larchimb/pacman · Python 3 · pygame&lt;/span&gt;" vertex="1">
+          <mxGeometry height="60" width="880" x="-170" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="cLog" parent="1" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;fillColor=#dae8fc;fillOpacity=15;strokeColor=#6c8ebf;strokeWidth=2;dashed=1;verticalAlign=top;align=center;fontSize=18;fontColor=#6c8ebf;spacingTop=4;" value="&lt;b&gt;src/logical&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:12px;font-weight:normal&quot;&gt;game logic — never imports pygame&lt;/span&gt;" vertex="1">
+          <mxGeometry height="1150" width="940" x="221" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="cGfx" parent="1" style="rounded=1;arcSize=2;whiteSpace=wrap;html=1;fillColor=#d5e8d4;fillOpacity=15;strokeColor=#82b366;strokeWidth=2;dashed=1;verticalAlign=top;align=center;fontSize=18;fontColor=#82b366;spacingTop=4;" value="&lt;b&gt;src/graphical&lt;/b&gt;&lt;br&gt;&lt;span style=&quot;font-size:12px;font-weight:normal&quot;&gt;display — reads the game state, never decides the rules&lt;/span&gt;" vertex="1">
+          <mxGeometry height="1150" width="900" x="1240" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="tExt" parent="1" style="text;html=1;align=center;fontSize=13;" value="&lt;b&gt;Files &amp;amp; dependencies&lt;/b&gt;" vertex="1">
+          <mxGeometry height="25" width="180" x="-170" y="215" as="geometry" />
+        </mxCell>
+        <mxCell id="main" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=left;verticalAlign=top;spacingLeft=8;spacingRight=6;spacingTop=2;fillColor=#ffe6cc;strokeColor=#d79b00;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b style=&quot;font-size:14px&quot;&gt;pac-man.py&lt;/b&gt; — main()&lt;/div&gt;&lt;hr&gt;1. config_path(sys.argv)&lt;br&gt;2. Parser.check_file() (else default config)&lt;br&gt;3. MazeLoader(raw)&lt;br&gt;4. App(2048, 1450, &quot;Pac-Man&quot;, config).run()" vertex="1">
+          <mxGeometry height="110" width="420" x="950" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="paths" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=left;verticalAlign=top;spacingLeft=8;spacingRight=6;spacingTop=2;fillColor=#ffe6cc;strokeColor=#d79b00;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b style=&quot;font-size:14px&quot;&gt;src/paths.py&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;resource_path() — bundled files (assets, config)&lt;br&gt;user_path() — written files (highscores)&lt;br&gt;config_path(argv) — handles PyInstaller mode" vertex="1">
+          <mxGeometry height="110" width="330" x="1450" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fCfg" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;shape=note;size=14;fillColor=#fff2cc;strokeColor=#d6b656;" value="&lt;b&gt;config.json&lt;/b&gt;&lt;br&gt;levels, lives, pacgum, points, seed, level_max_time" vertex="1">
+          <mxGeometry height="80" width="180" x="-170" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="fHs" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;shape=note;size=14;fillColor=#fff2cc;strokeColor=#d6b656;" value="&lt;b&gt;.highscores.json&lt;/b&gt;&lt;br&gt;top 10 {name, score}" vertex="1">
+          <mxGeometry height="80" width="180" x="-170" y="415" as="geometry" />
+        </mxCell>
+        <mxCell id="xMaze" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=8;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;" value="&lt;b&gt;mazegenerator&lt;/b&gt;&lt;br&gt;external .whl package&lt;br&gt;MazeGenerator(size, seed)" vertex="1">
+          <mxGeometry height="80" width="180" x="-170" y="580" as="geometry" />
+        </mxCell>
+        <mxCell id="xPg" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=8;fillColor=#f5f5f5;strokeColor=#666666;dashed=1;" value="&lt;b&gt;pygame&lt;/b&gt;&lt;br&gt;window, images, keyboard" vertex="1">
+          <mxGeometry height="80" width="190" x="2190" y="325" as="geometry" />
+        </mxCell>
+        <mxCell id="fAs" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;shape=note;size=14;fillColor=#fff2cc;strokeColor=#d6b656;" value="&lt;b&gt;assets/&lt;/b&gt;&lt;br&gt;PNG sprites + background" vertex="1">
+          <mxGeometry height="80" width="190" x="2190" y="675" as="geometry" />
+        </mxCell>
+        <mxCell id="parser" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=left;verticalAlign=top;spacingLeft=8;spacingRight=6;spacingTop=2;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b style=&quot;font-size:14px&quot;&gt;Parser&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;parser.py · + ParsingError&lt;/i&gt;&lt;/div&gt;&lt;hr&gt;+ check_file(path) → dict&lt;br&gt;+ delete_comments(text) → str&lt;br&gt;+ check_json_format(data, path) → dict&lt;br&gt;(static methods)" vertex="1">
+          <mxGeometry height="150" width="280" x="250" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="ml" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=left;verticalAlign=top;spacingLeft=8;spacingRight=6;spacingTop=2;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b style=&quot;font-size:14px&quot;&gt;MazeLoader&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;mazeloader.py — validated config + highscores&lt;/i&gt;&lt;/div&gt;&lt;hr&gt;+ datas: levels, lives, pacgum, points_per_*, seed, level_max_time, highscore&lt;br&gt;+ path_to_highscore&lt;hr&gt;+ get_values() / get_levels() — validated, else default&lt;br&gt;+ get_highscores() / check_highscores()&lt;br&gt;+ save_score(name, score) → bool&lt;br&gt;+ top_ten(entries)" vertex="1">
+          <mxGeometry height="185" width="550" x="580" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="game" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=left;verticalAlign=top;spacingLeft=8;spacingRight=6;spacingTop=2;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b style=&quot;font-size:14px&quot;&gt;Game&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;game.py — state and rules of a game&lt;/i&gt;&lt;/div&gt;&lt;hr&gt;+ config: MazeLoader&lt;br&gt;+ levels: list[Level], current_level&lt;br&gt;+ score, lives, level_timer, result&lt;br&gt;+ supertime, cheating_mode, frozen&lt;hr&gt;+ update(dt) — Pac-Man, eat(), collision(), ghosts&lt;br&gt;+ handle_action(action) — direction / cheats&lt;br&gt;+ eat() / activate_power() / deactivate_power()&lt;br&gt;+ collision() / lose_life() / pass_level() / game_end()&lt;br&gt;+ activate_cheat(action)&lt;br&gt;+ generate_maze() / level_generator()" vertex="1">
+          <mxGeometry height="270" width="520" x="250" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="level" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=left;verticalAlign=top;spacingLeft=8;spacingRight=6;spacingTop=2;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b style=&quot;font-size:14px&quot;&gt;Level&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;level.py — one level&lt;/i&gt;&lt;/div&gt;&lt;hr&gt;+ _maze: grid (walls as bits)&lt;br&gt;+ pacman: PacMan&lt;br&gt;+ ghosts: 4 Ghost&lt;br&gt;+ pacgums, supergums: set[cell]&lt;hr&gt;+ pacgums_set_up() / supergums_set_up()&lt;br&gt;+ eat(cell) → &quot;pacgum&quot; | &quot;supergum&quot; | None&lt;br&gt;+ is_cleared() → bool" vertex="1">
+          <mxGeometry height="190" width="310" x="820" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="ent" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=left;verticalAlign=top;spacingLeft=8;spacingRight=6;spacingTop=2;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b style=&quot;font-size:14px&quot;&gt;Entity&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;entities.py&lt;/i&gt;&lt;/div&gt;&lt;hr&gt;+ maze, start, pos, prev_pos&lt;br&gt;+ direction, next_direction&lt;br&gt;+ step_time, elapsed&lt;hr&gt;+ tick(dt) — one cell every step_time&lt;br&gt;+ can_move(dir) / move() / respawn()&lt;br&gt;+ cell (property)" vertex="1">
+          <mxGeometry height="165" width="320" x="600" y="820" as="geometry" />
+        </mxCell>
+        <mxCell id="pac" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=left;verticalAlign=top;spacingLeft=8;spacingRight=6;spacingTop=2;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b style=&quot;font-size:14px&quot;&gt;PacMan&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;inherits Entity&lt;/i&gt;&lt;/div&gt;&lt;hr&gt;+ invincible&lt;hr&gt;+ set_next_direction(action)&lt;br&gt;+ cheat_speed()" vertex="1">
+          <mxGeometry height="110" width="280" x="250" y="1010" as="geometry" />
+        </mxCell>
+        <mxCell id="ghost" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=left;verticalAlign=top;spacingLeft=8;spacingRight=6;spacingTop=2;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b style=&quot;font-size:14px&quot;&gt;Ghost&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;inherits Entity, ABC&lt;/i&gt;&lt;/div&gt;&lt;hr&gt;+ pacman, weak, waiting_time, shortest_path&lt;hr&gt;+ find_shortest_path(goal) — BFS in the maze&lt;br&gt;+ go_to(goal) / get_flee_direction()&lt;br&gt;+ respawn()&lt;br&gt;+ get_next_direction() «abstract» — flees if weak" vertex="1">
+          <mxGeometry height="150" width="540" x="590" y="1010" as="geometry" />
+        </mxCell>
+        <mxCell id="hun" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=8;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;b&gt;Hunter&lt;/b&gt;&lt;br&gt;rushes at Pac-Man&lt;br&gt;(shortest path)" vertex="1">
+          <mxGeometry height="95" width="205" x="250" y="1215" as="geometry" />
+        </mxCell>
+        <mxCell id="tri" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=8;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;b&gt;Tricky&lt;/b&gt;&lt;br&gt;aims up to 4 cells&lt;br&gt;ahead of Pac-Man" vertex="1">
+          <mxGeometry height="95" width="205" x="470" y="1215" as="geometry" />
+        </mxCell>
+        <mxCell id="ran" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=8;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;b&gt;Randomly&lt;/b&gt;&lt;br&gt;random direction,&lt;br&gt;no U-turn" vertex="1">
+          <mxGeometry height="95" width="205" x="690" y="1215" as="geometry" />
+        </mxCell>
+        <mxCell id="sca" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=8;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;b&gt;Scary&lt;/b&gt;&lt;br&gt;chases, then goes home&lt;br&gt;when Pac-Man is within 8 cells" vertex="1">
+          <mxGeometry height="95" width="205" x="910" y="1215" as="geometry" />
+        </mxCell>
+        <mxCell id="app" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=left;verticalAlign=top;spacingLeft=8;spacingRight=6;spacingTop=2;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b style=&quot;font-size:14px&quot;&gt;App&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;app.py — main loop&lt;/i&gt;&lt;/div&gt;&lt;hr&gt;+ _renderer: Renderer&lt;br&gt;+ _screen: Screen (current screen)&lt;br&gt;+ config: MazeLoader&lt;hr&gt;+ run() — each frame: poll_events → handle_event → update(dt) → draw&lt;br&gt;+ change_screen(screen)&lt;br&gt;+ show_menu() / show_highscores() / show_instructions()&lt;br&gt;+ start_game() → GameScreen(Game(config))&lt;br&gt;+ pause(game) / end_game(won, score)&lt;br&gt;+ save_score(name, score)" vertex="1">
+          <mxGeometry height="245" width="430" x="1270" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="rend" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=left;verticalAlign=top;spacingLeft=8;spacingRight=6;spacingTop=2;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b style=&quot;font-size:14px&quot;&gt;Renderer&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;renderer.py — only file importing pygame&lt;/i&gt;&lt;/div&gt;&lt;hr&gt;+ width, height, _window, _images&lt;hr&gt;+ poll_events() → list[InputEvent]&lt;br&gt;+ new_image() / load_image() / opaque_pixels()&lt;br&gt;+ put_image() / put_pixels() / pixel_put()&lt;br&gt;+ string_put() / text_width()&lt;br&gt;+ clear() / present() / close()" vertex="1">
+          <mxGeometry height="245" width="350" x="1760" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="pf" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=8;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;pixel_font.py&lt;/b&gt;&lt;br&gt;pixel_rows() / new_pixel_image()&lt;br&gt;big pixel titles (Menu, End)" vertex="1">
+          <mxGeometry height="70" width="350" x="1760" y="530" as="geometry" />
+        </mxCell>
+        <mxCell id="scr" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=left;verticalAlign=top;spacingLeft=8;spacingRight=6;spacingTop=2;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;div style=&quot;text-align:center&quot;&gt;&lt;b style=&quot;font-size:14px&quot;&gt;Screen&lt;/b&gt;&lt;br&gt;&lt;i style=&quot;font-size:11px&quot;&gt;screens/screen.py — base class&lt;/i&gt;&lt;/div&gt;&lt;hr&gt;+ _app: App&lt;hr&gt;+ handle_event(event)&lt;br&gt;+ update(dt)&lt;br&gt;+ draw(renderer)&lt;br&gt;+ _draw_background()" vertex="1">
+          <mxGeometry height="150" width="380" x="1500" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="sGame" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=8;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;GameScreen&lt;/b&gt;&lt;br&gt;board, sprites, HUD&lt;br&gt;touches → game.handle_action()&lt;br&gt;update → game.update(dt), reads result" vertex="1">
+          <mxGeometry height="125" width="260" x="1270" y="855" as="geometry" />
+        </mxCell>
+        <mxCell id="sMenu" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=8;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;MenuScreen&lt;/b&gt;&lt;br&gt;Start Game · Highscores&lt;br&gt;Instructions · Exit" vertex="1">
+          <mxGeometry height="125" width="260" x="1560" y="855" as="geometry" />
+        </mxCell>
+        <mxCell id="sPause" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=8;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;PauseScreen&lt;/b&gt;&lt;br&gt;keeps the GameScreen&lt;br&gt;Resume · Main menu" vertex="1">
+          <mxGeometry height="125" width="260" x="1850" y="855" as="geometry" />
+        </mxCell>
+        <mxCell id="sInst" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=8;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;InstructionsScreen&lt;/b&gt;&lt;br&gt;how to play,&lt;br&gt;cheat keys" vertex="1">
+          <mxGeometry height="110" width="260" x="1270" y="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="sHs" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=8;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;HighscoresScreen&lt;/b&gt;&lt;br&gt;top 10 from config.datas,&lt;br&gt;player highlighted" vertex="1">
+          <mxGeometry height="110" width="260" x="1560" y="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="sEnd" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontColor=#1a1a1a;fontSize=12;align=center;verticalAlign=middle;rounded=1;arcSize=8;fillColor=#d5e8d4;strokeColor=#82b366;" value="&lt;b&gt;EndScreen&lt;/b&gt;&lt;br&gt;VICTORY / GAME OVER&lt;br&gt;name input → app.save_score()" vertex="1">
+          <mxGeometry height="110" width="260" x="1850" y="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="tNav" parent="1" style="text;html=1;align=left;fontSize=13;" value="&lt;b&gt;Screen navigation&lt;/b&gt; — App.change_screen()" vertex="1">
+          <mxGeometry height="25" width="600" x="1270" y="1145" as="geometry" />
+        </mxCell>
+        <mxCell id="nMenu" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fontSize=12;fontStyle=1;fontColor=#1a1a1a;fillColor=#ffffff;strokeColor=#82b366;" value="Menu" vertex="1">
+          <mxGeometry height="36" width="110" x="1280" y="1205" as="geometry" />
+        </mxCell>
+        <mxCell id="nGame" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fontSize=12;fontStyle=1;fontColor=#1a1a1a;fillColor=#ffffff;strokeColor=#82b366;" value="Game" vertex="1">
+          <mxGeometry height="36" width="110" x="1460" y="1205" as="geometry" />
+        </mxCell>
+        <mxCell id="nEnd" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fontSize=12;fontStyle=1;fontColor=#1a1a1a;fillColor=#ffffff;strokeColor=#82b366;" value="End" vertex="1">
+          <mxGeometry height="36" width="110" x="1640" y="1205" as="geometry" />
+        </mxCell>
+        <mxCell id="nHs" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fontSize=12;fontStyle=1;fontColor=#1a1a1a;fillColor=#ffffff;strokeColor=#82b366;" value="Highscores" vertex="1">
+          <mxGeometry height="36" width="110" x="1820" y="1205" as="geometry" />
+        </mxCell>
+        <mxCell id="nPause" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fontSize=12;fontStyle=1;fontColor=#1a1a1a;fillColor=#ffffff;strokeColor=#82b366;" value="Pause" vertex="1">
+          <mxGeometry height="36" width="110" x="1460" y="1285" as="geometry" />
+        </mxCell>
+        <mxCell id="nInst" parent="1" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fontSize=12;fontStyle=1;fontColor=#1a1a1a;fillColor=#ffffff;strokeColor=#82b366;" value="Instructions" vertex="1">
+          <mxGeometry height="36" width="110" x="1280" y="1285" as="geometry" />
+        </mxCell>
+        <mxCell id="tNav2" parent="1" style="text;html=1;align=left;fontSize=11;fontStyle=2;" value="Escape / &quot;Main menu&quot; goes back to Menu&lt;br&gt;from Pause, End, Highscores, Instructions" vertex="1">
+          <mxGeometry height="50" width="440" x="1640" y="1270" as="geometry" />
+        </mxCell>
+        <mxCell id="tContract" parent="1" style="text;html=1;align=left;verticalAlign=top;fontSize=11;fontColor=#E51400;" value="&lt;b&gt;Logic ↔ display contract&lt;/b&gt;&lt;br&gt;game.handle_action(action)&lt;br&gt;game.update(dt)&lt;br&gt;read-only: level, score, lives,&lt;br&gt;level_timer, result" vertex="1">
+          <mxGeometry height="90" width="190" x="962" y="735" as="geometry" />
+        </mxCell>
+        <mxCell id="legend" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=12;align=center;fillColor=none;strokeColor=#999999;" value="&lt;b&gt;Legend&lt;/b&gt; &amp;nbsp; &lt;span style=&quot;color:#6c8ebf&quot;&gt;■&lt;/span&gt; logic (src/logical) &amp;nbsp; &lt;span style=&quot;color:#82b366&quot;&gt;■&lt;/span&gt; display (src/graphical) &amp;nbsp; &lt;span style=&quot;color:#d79b00&quot;&gt;■&lt;/span&gt; entry point / utility &amp;nbsp; &lt;span style=&quot;color:#d6b656&quot;&gt;■&lt;/span&gt; file &amp;nbsp; &lt;span style=&quot;color:#999999&quot;&gt;▭&lt;/span&gt; external dependency (dashed) &amp;nbsp;&amp;nbsp;|&amp;nbsp;&amp;nbsp; ──▷ inherits from &amp;nbsp; ◆── contains &amp;nbsp; ─ ─ › uses / calls &amp;nbsp; &lt;span style=&quot;color:#E51400&quot;&gt;&lt;b&gt;━━ logic ↔ display contract&lt;/b&gt;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="40" width="1920" x="220" y="1370" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="main" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="paths" value="config_path(argv)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="main" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="parser" value="Parser.check_file(path)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="main" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;exitX=0.119;exitY=1;exitDx=0;exitDy=0;entryX=0.764;entryY=0;entryDx=0;entryDy=0;" target="ml" value="MazeLoader(raw)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="main" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;exitX=0.857;exitY=1;exitDx=0;exitDy=0;entryX=0.093;entryY=0;entryDx=0;entryDy=0;" target="app" value="App(…).run()">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="parser" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;exitX=0;exitY=0.267;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="fCfg" value="reads (strips # comments)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="ml" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;exitX=0;exitY=0.189;exitDx=0;exitDy=0;entryX=1;entryY=0.233;entryDx=0;entryDy=0;" target="parser" value="reuses">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="ml" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;startArrow=open;exitX=0;exitY=0.81;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="fHs" value="reads / writes top 10">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="555" y="400" />
+              <mxPoint x="555" y="455" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="game" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;exitX=0.769;exitY=0;exitDx=0;exitDy=0;entryX=0.127;entryY=1;entryDx=0;entryDy=0;" target="ml" value="config.datas">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="game" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;startArrow=diamondThin;startFill=1;startSize=16;exitX=1;exitY=0.222;exitDx=0;exitDy=0;entryX=0;entryY=0.316;entryDx=0;entryDy=0;" target="level" value="1..n">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="game" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;exitX=0;exitY=0.444;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="xMaze" value="MazeGenerator(size, seed)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="level" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;startArrow=diamondThin;startFill=1;startSize=16;exitX=0.274;exitY=1;exitDx=0;exitDy=0;entryX=0.953;entryY=0;entryDx=0;entryDy=0;" target="ent" value="1 PacMan + 4 Ghosts">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="pac" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=0;endSize=14;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" target="ent" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="ghost" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=0;endSize=14;exitX=0.463;exitY=0;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" target="ent" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="hun" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=0;endSize=14;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="ghost" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="tri" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=0;endSize=14;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="ghost" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="ran" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=0;endSize=14;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="ghost" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="sca" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=0;endSize=14;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="ghost" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="ghost" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;exitX=0;exitY=0.367;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="pac" value="chases">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="app" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;startArrow=diamondThin;startFill=1;startSize=16;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="rend" value="_renderer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" edge="1" parent="1" source="rend" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="xPg" value="only import">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" edge="1" parent="1" source="app" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;startArrow=diamondThin;startFill=1;startSize=16;exitX=0.767;exitY=1;exitDx=0;exitDy=0;entryX=0.263;entryY=0;entryDx=0;entryDy=0;" target="scr" value="_screen (current)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" edge="1" parent="1" source="app" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;exitX=0;exitY=0.3;exitDx=0;exitDy=0;entryX=1;entryY=0.378;entryDx=0;entryDy=0;" target="ml" value="config · save_score()">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" edge="1" parent="1" source="scr" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;dashed=1;exitX=1;exitY=0.536;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="fAs" value="load_image()">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e24" edge="1" parent="1" source="sGame" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=none;endArrow=block;endFill=0;endSize=14;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="scr" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1400" y="820" />
+              <mxPoint x="1690" y="820" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e25" edge="1" parent="1" source="sMenu" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=none;endArrow=block;endFill=0;endSize=14;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="scr" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e26" edge="1" parent="1" source="sPause" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=none;endArrow=block;endFill=0;endSize=14;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="scr" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1980" y="820" />
+              <mxPoint x="1690" y="820" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e27" edge="1" parent="1" source="sInst" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=none;endArrow=block;endFill=0;endSize=14;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="scr" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1400" y="1000" />
+              <mxPoint x="1545" y="1000" />
+              <mxPoint x="1545" y="820" />
+              <mxPoint x="1690" y="820" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e28" edge="1" parent="1" source="sHs" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=none;endArrow=block;endFill=0;endSize=14;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="scr" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1690" y="1000" />
+              <mxPoint x="1835" y="1000" />
+              <mxPoint x="1835" y="820" />
+              <mxPoint x="1690" y="820" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e29" edge="1" parent="1" source="sEnd" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=none;endArrow=block;endFill=0;endSize=14;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="scr" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1980" y="1000" />
+              <mxPoint x="1835" y="1000" />
+              <mxPoint x="1835" y="820" />
+              <mxPoint x="1690" y="820" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e30" edge="1" parent="1" source="sGame" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=none;strokeColor=#E51400;strokeWidth=3;endArrow=block;endFill=1;jumpStyle=arc;jumpSize=14;exitX=0;exitY=0.52;exitDx=0;exitDy=0;entryX=1;entryY=0.833;entryDx=0;entryDy=0;" target="game" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1195" y="920" />
+              <mxPoint x="1195" y="725" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e31" edge="1" parent="1" source="nMenu" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="nGame" value="Start">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e32" edge="1" parent="1" source="nGame" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="nEnd" value="result">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e33" edge="1" parent="1" source="nEnd" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="nHs" value="save_score">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e34" edge="1" parent="1" source="nGame" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.3;entryY=0;entryDx=0;entryDy=0;" target="nPause" value="Space">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e35" edge="1" parent="1" source="nPause" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;exitX=0.7;exitY=0;exitDx=0;exitDy=0;entryX=0.7;entryY=1;entryDx=0;entryDy=0;" target="nGame" value="Resume">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e36" edge="1" parent="1" source="nMenu" style="html=1;fontSize=11;rounded=1;labelBackgroundColor=default;endArrow=open;endSize=10;edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="nInst" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -120,16 +120,32 @@ class GameScreen(Screen):
         elif self.game.result == "defeat":
             self._app.end_game(False, self.game.score)
 
+    def define_h_offset(self, screen_width: int, maze_width: int) -> None:
+        """Define the offset to center the 42 symbol"""
+        if maze_width % 2 == 0:
+            self._offset_x = (screen_width - maze_width * CELL_SIZE) // 2 + CELL_SIZE // 2
+        else:
+            self._offset_x = (screen_width - maze_width * CELL_SIZE) // 2
+
+    def define_v_offset(self, screen_height: int, maze_height: int) -> None:
+        """Define the offset to center the 42 symbol"""
+        if maze_height % 2 == 0:
+            self._offset_y = HUD_HEIGHT + (
+                    screen_height- HUD_HEIGHT - maze_height * CELL_SIZE
+                    ) // 2 + CELL_SIZE // 2
+        else:
+            self._offset_y = HUD_HEIGHT + (
+                        screen_height- HUD_HEIGHT - maze_height * CELL_SIZE
+                    ) // 2
+
     def draw(self, renderer: Renderer) -> None:
         """Draw the walls, then the gums, centered under the HUD."""
         level = self.game.level
         maze = level._maze
         width = len(maze[0])
         height = len(maze)
-        self._offset_x = (renderer.width - width * CELL_SIZE) // 2
-        self._offset_y = HUD_HEIGHT + (
-            renderer.height - HUD_HEIGHT - height * CELL_SIZE
-        ) // 2
+        self.define_h_offset(renderer.width, width)
+        self.define_v_offset(renderer.height, height)
         for y, row in enumerate(maze):
             for x, cell in enumerate(row):
                 px, py = self._cell_pixel((x, y))

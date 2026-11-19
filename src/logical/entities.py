@@ -155,7 +155,7 @@ class Ghost(Entity, ABC):
         moves = [
             (0, -1, 1, 'N'), (1, 0, 2, 'E'),
             (0, 1, 4, 'S'), (-1, 0, 8, 'W')
-            ]   # dx, dy, wall code, letter
+            ]
         start = self.pos
         prev: dict[Any, Any] = {start: None}
         queue = deque([start])

@@ -55,7 +55,7 @@ class HighscoresScreen(Screen):
         )
         first_y = top + 2 * LINE_HEIGHT
         if not self._scores:
-            text = "No score yet"
+            text = "No scores"
             renderer.string_put(
                 self._center_x(renderer, text), first_y, TEXT_COLOR, text
             )

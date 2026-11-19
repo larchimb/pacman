@@ -18,7 +18,7 @@ clean:
 	rm -rf .mypy_cache
 	rm -rf build/ dist/
 
-clean_all: clean
+fclean: clean
 	rm -rf .venv
 	rm -f $(ZIP)
 

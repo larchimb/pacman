@@ -123,7 +123,9 @@ class GameScreen(Screen):
     def define_h_offset(self, screen_width: int, maze_width: int) -> None:
         """Define the offset to center the 42 symbol"""
         if maze_width % 2 == 0:
-            self._offset_x = (screen_width - maze_width * CELL_SIZE) // 2 + CELL_SIZE // 2
+            self._offset_x = (
+                (screen_width - maze_width * CELL_SIZE) // 2 + CELL_SIZE // 2
+                )
         else:
             self._offset_x = (screen_width - maze_width * CELL_SIZE) // 2
 
@@ -131,11 +133,11 @@ class GameScreen(Screen):
         """Define the offset to center the 42 symbol"""
         if maze_height % 2 == 0:
             self._offset_y = HUD_HEIGHT + (
-                    screen_height- HUD_HEIGHT - maze_height * CELL_SIZE
+                    screen_height - HUD_HEIGHT - maze_height * CELL_SIZE
                     ) // 2 + CELL_SIZE // 2
         else:
             self._offset_y = HUD_HEIGHT + (
-                        screen_height- HUD_HEIGHT - maze_height * CELL_SIZE
+                        screen_height - HUD_HEIGHT - maze_height * CELL_SIZE
                     ) // 2
 
     def draw(self, renderer: Renderer) -> None:

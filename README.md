@@ -64,7 +64,7 @@ python3 pac-man.py config.json
 
 ### Packaged version (Itch.io)
 
-TODO: add the Itch.io link.
+[link to the Itch.io](https://larchimb.itch.io/pacman)
 
 Download the archive, extract it, then run `./pac-man` from the extracted folder.
 The game reads `config.json` next to the executable if there is one, otherwise it

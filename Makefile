@@ -2,7 +2,7 @@ ARG ?= config.json
 ZIP = pacman.zip
 HIDE = PYGAME_HIDE_SUPPORT_PROMPT=1
 
-.PHONY: install run debug clean clean_all build lint lint-strict
+.PHONY: install run debug clean fclean build lint lint-strict
 
 install:
 	uv sync
